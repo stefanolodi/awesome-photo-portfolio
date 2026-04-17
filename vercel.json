@@ -2,10 +2,6 @@
   "buildCommand": "vite build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/sign-cloudinary-upload.ts": { "runtime": "nodejs20.x" },
-    "api/delete-cloudinary-asset.ts": { "runtime": "nodejs20.x" }
-  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }

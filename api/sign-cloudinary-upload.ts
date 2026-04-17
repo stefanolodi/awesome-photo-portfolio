@@ -1,32 +1,34 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { v2 as cloudinary } from 'cloudinary';
-import jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
+
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME ?? process.env.VITE_CLOUDINARY_CLOUD_NAME;
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  cloud_name: CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-function verifySupabaseJwt(authHeader: string | undefined): boolean {
-  if (!authHeader?.startsWith('Bearer ')) return false;
+async function getAuthedUser(authHeader: string | undefined) {
+  if (!authHeader?.startsWith('Bearer ')) return null;
   const token = authHeader.slice(7);
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (!secret) return false;
-  try {
-    jwt.verify(token, secret);
-    return true;
-  } catch {
-    return false;
-  }
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL!,
+    process.env.VITE_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } }
+  );
+  const { data: { user } } = await supabase.auth.getUser(token);
+  return user;
 }
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!verifySupabaseJwt(req.headers.authorization)) {
+  const user = await getAuthedUser(req.headers.authorization);
+  if (!user) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -38,11 +40,19 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     process.env.CLOUDINARY_API_SECRET as string
   );
 
-  return res.status(200).json({
+  const payload = {
     signature,
     timestamp,
     apiKey: process.env.CLOUDINARY_API_KEY,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    cloudName: CLOUD_NAME,
     folder,
+  };
+  console.log('[sign-cloudinary-upload] payload:', {
+    ...payload,
+    apiKey: payload.apiKey ? `${payload.apiKey.slice(0, 6)}…` : 'MISSING',
+    cloudName: payload.cloudName ?? 'MISSING',
+    VITE_CLOUDINARY_CLOUD_NAME: process.env.VITE_CLOUDINARY_CLOUD_NAME ?? 'MISSING',
+    hasSecret: !!process.env.CLOUDINARY_API_SECRET,
   });
+  return res.status(200).json(payload);
 }

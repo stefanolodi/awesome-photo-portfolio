@@ -1,4 +1,4 @@
-import { useState, useRef, type ChangeEvent, type DragEvent } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useCreatePhoto } from '../hooks/usePhotos';
 import { getUploadSignature, uploadToCloudinary } from '../lib/cloudinary';
@@ -15,15 +15,26 @@ interface FileEntry {
 interface Props {
   albumId: string;
   onDone?: () => void;
+  onClose?: () => void;
 }
 
-export function PhotoUpload({ albumId, onDone }: Props) {
+export function PhotoUpload({ albumId, onDone, onClose }: Props) {
   const { session } = useAuth();
   const createPhoto = useCreatePhoto();
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [isDragover, setIsDragover] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.stopPropagation();
+    };
+    el.addEventListener('wheel', onWheel);
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   const addFiles = (incoming: FileList) => {
     const entries: FileEntry[] = Array.from(incoming)
@@ -64,50 +75,62 @@ export function PhotoUpload({ albumId, onDone }: Props) {
 
     const sig = await getUploadSignature(session.access_token);
 
-    await Promise.allSettled(
-      files
-        .filter((f) => f.status === 'pending')
-        .map(async (entry) => {
-          updateFile(entry.id, { status: 'uploading' });
-          try {
-            const result = await uploadToCloudinary(entry.file, sig, (progress) => {
-              updateFile(entry.id, { progress });
-            });
-            await createPhoto.mutateAsync({
-              albumId,
-              title: entry.title,
-              url: result.url,
-              publicId: result.publicId,
-              width: result.width,
-              height: result.height,
-            });
-            updateFile(entry.id, { status: 'done', progress: 100 });
-          } catch {
-            updateFile(entry.id, { status: 'error' });
-          }
-        })
+    const pending = files.filter((f) => f.status === 'pending');
+    const results = await Promise.allSettled(
+      pending.map(async (entry) => {
+        updateFile(entry.id, { status: 'uploading' });
+        const result = await uploadToCloudinary(entry.file, sig, (progress) => {
+          updateFile(entry.id, { progress });
+        });
+        await createPhoto.mutateAsync({
+          albumId,
+          title: entry.title,
+          url: result.url,
+          publicId: result.publicId,
+          width: result.width,
+          height: result.height,
+        });
+        updateFile(entry.id, { status: 'done', progress: 100 });
+      })
     );
 
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') updateFile(pending[i].id, { status: 'error' });
+    });
+
     setIsUploading(false);
-    const allDone = files.every((f) => f.status === 'done');
-    if (allDone) {
+    const allSucceeded = results.every((r) => r.status === 'fulfilled');
+    if (allSucceeded) {
       setFiles([]);
       onDone?.();
+      onClose?.();
     }
   };
 
   const pendingCount = files.filter((f) => f.status === 'pending').length;
 
+  const handleClose = () => {
+    onDone?.();
+    onClose?.();
+  };
+
   return (
-    <div className="upload-section">
-      <div
-        className={`upload-dropzone${isDragover ? ' is-dragover' : ''}`}
-        onDragOver={(e) => { e.preventDefault(); setIsDragover(true); }}
-        onDragLeave={() => setIsDragover(false)}
-        onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
-      >
-        <input ref={inputRef} type="file" accept="image/*" multiple onChange={onFileChange} />
+    <div className="upload-modal-overlay" role="dialog" aria-modal="true" aria-label="Upload photos">
+      <div className="upload-modal-backdrop" onClick={handleClose} />
+      <div className="upload-modal-body">
+        <div className="panel-header">
+          <h2 className="panel-title">Upload photos</h2>
+          <button type="button" className="panel-close" onClick={handleClose} aria-label="Close">×</button>
+        </div>
+
+        <div className="upload-modal-scroll" ref={scrollRef}>
+        <div
+          className={`upload-dropzone${isDragover ? ' is-dragover' : ''}`}
+          onDragOver={(e) => { e.preventDefault(); setIsDragover(true); }}
+          onDragLeave={() => setIsDragover(false)}
+          onDrop={onDrop}
+        >
+        <input type="file" accept="image/*" multiple onChange={onFileChange} />
         <div className="upload-dropzone-text">
           <div className="upload-dropzone-icon">↑</div>
           <p className="upload-dropzone-label">Drop photos here or click to browse</p>
@@ -173,6 +196,8 @@ export function PhotoUpload({ albumId, onDone }: Props) {
           </div>
         </>
       )}
+        </div>
+      </div>
     </div>
   );
 }

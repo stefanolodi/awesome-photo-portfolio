@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
+import { deleteCloudinaryAsset } from '../lib/cloudinary';
 import type { Photo } from '../types';
 
 const photosKey = (albumId: string) => ['photos', albumId] as const;
@@ -54,9 +55,9 @@ export function useCreatePhoto() {
       if (error) throw error;
       return mapPhoto(data);
     },
-    onSuccess: (photo) => {
-      queryClient.invalidateQueries({ queryKey: photosKey(photo.id) });
-      queryClient.invalidateQueries({ queryKey: albumKey(photo.id) });
+    onSuccess: (_photo, variables) => {
+      queryClient.invalidateQueries({ queryKey: photosKey(variables.albumId) });
+      queryClient.invalidateQueries({ queryKey: albumKey(variables.albumId) });
     },
   });
 }
@@ -85,9 +86,13 @@ export function useUpdatePhoto() {
 
 export function useDeletePhoto() {
   return useMutation({
-    mutationFn: async ({ id, albumId }: { id: string; albumId: string; publicId: string }) => {
+    mutationFn: async ({ id, albumId, publicId }: { id: string; albumId: string; publicId: string }) => {
       const { error } = await supabase.from('photos').delete().eq('id', id);
       if (error) throw error;
+      if (publicId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) deleteCloudinaryAsset(publicId, session.access_token).catch(() => {});
+      }
       return { albumId };
     },
     onSuccess: (_data, { albumId }) => {

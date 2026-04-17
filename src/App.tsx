@@ -16,12 +16,12 @@ import {
   arrayMove
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Lock } from 'lucide-react';
+import { Lock, Trash2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useSmoothScroll } from './useSmoothScroll';
 import { useAuth } from './hooks/useAuth';
 import { useAlbums, useAlbum, useReorderAlbums, useUpdateAlbum } from './hooks/useAlbums';
-import { useReorderPhotos, useUpdatePhoto } from './hooks/usePhotos';
+import { useReorderPhotos, useUpdatePhoto, useDeletePhoto } from './hooks/usePhotos';
 import { AlbumForm } from './components/AlbumForm';
 import { PhotoUpload } from './components/PhotoUpload';
 import { PhotoEditModal } from './components/PhotoEditModal';
@@ -328,6 +328,7 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const updateAlbum = useUpdateAlbum();
   const reorderPhotos = useReorderPhotos(albumId ?? '');
   const updatePhoto = useUpdatePhoto();
+  const deletePhoto = useDeletePhoto();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
@@ -445,6 +446,7 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
                     photo={photo}
                     isActive={selectedPhoto?.id === photo.id}
                     onSelect={() => setSelectedPhotoId(photo.id)}
+                    onDelete={() => deletePhoto.mutate({ id: photo.id, albumId: album.id, publicId: photo.publicId })}
                   />
                 ))}
               </div>
@@ -465,11 +467,6 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           </div>
         )}
 
-        {isOwner && (
-          <>
-            {showUpload && <PhotoUpload albumId={album.id} onDone={() => setShowUpload(false)} />}
-          </>
-        )}
       </section>
 
       {isOwner && (
@@ -477,9 +474,9 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           <button
             type="button"
             className="owner-toolbar-btn is-primary"
-            onClick={() => setShowUpload((v) => !v)}
+            onClick={() => setShowUpload(true)}
           >
-            {showUpload ? 'Hide upload' : '↑ Upload photos'}
+            ↑ Upload photos
           </button>
           <button
             type="button"
@@ -503,6 +500,7 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
         />
       )}
 
+      {showUpload && <PhotoUpload albumId={album.id} onDone={() => setShowUpload(false)} onClose={() => setShowUpload(false)} />}
       {showEditAlbum && <AlbumForm album={album} onClose={() => setShowEditAlbum(false)} />}
       {editingPhoto && album && (
         <PhotoEditModal photo={editingPhoto} albumId={album.id} onClose={() => setEditingPhoto(null)} />
@@ -511,24 +509,59 @@ function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   );
 }
 
-type PhotoTileProps = { photo: Photo; isActive: boolean; onSelect: () => void };
+type PhotoTileProps = { photo: Photo; isActive: boolean; onSelect: () => void; onDelete?: () => void };
 
-function PhotoTile({ photo, isActive, onSelect }: PhotoTileProps) {
+function PhotoTile({ photo, isActive, onSelect, onDelete }: PhotoTileProps) {
+  const [confirming, setConfirming] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.65 : 1 };
+  const wrapStyle = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.65 : 1 };
 
   return (
-    <button
-      type="button"
-      className={isActive ? 'photo-tile is-active' : 'photo-tile'}
+    <div
+      className="photo-tile-wrap"
       ref={setNodeRef}
-      style={style}
-      onClick={onSelect}
-      {...attributes}
-      {...listeners}
+      style={wrapStyle}
+      onMouseLeave={() => setConfirming(false)}
     >
-      <img alt={photo.title} src={photo.src} loading="lazy" onError={(e) => setImageFallback(e, photo.title)} />
-    </button>
+      <button
+        type="button"
+        className={isActive ? 'photo-tile is-active' : 'photo-tile'}
+        onClick={onSelect}
+        {...attributes}
+        {...listeners}
+      >
+        <img alt={photo.title} src={photo.src} loading="lazy" onError={(e) => setImageFallback(e, photo.title)} />
+      </button>
+
+      {onDelete && (
+        <div className={confirming ? 'photo-delete-zone is-confirming' : 'photo-delete-zone'}>
+          {confirming ? (
+            <div className="photo-delete-confirm">
+              <span>Delete?</span>
+              <button
+                type="button"
+                aria-label="Confirm delete"
+                onClick={(e) => { e.stopPropagation(); onDelete(); setConfirming(false); }}
+              >✓</button>
+              <button
+                type="button"
+                aria-label="Cancel delete"
+                onClick={(e) => { e.stopPropagation(); setConfirming(false); }}
+              >✗</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="photo-delete-btn"
+              aria-label="Delete photo"
+              onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
+            >
+              <Trash2 size={12} strokeWidth={2} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

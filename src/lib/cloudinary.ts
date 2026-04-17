@@ -18,7 +18,10 @@ export async function getUploadSignature(authToken: string): Promise<UploadSigna
     method: 'POST',
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  if (!response.ok) throw new Error('Failed to get upload signature');
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Failed to get upload signature (${response.status}): ${body}`);
+  }
   return response.json();
 }
 
@@ -54,7 +57,7 @@ export function uploadToCloudinary(
           height: data.height,
         });
       } else {
-        reject(new Error(`Upload failed: ${xhr.statusText}`));
+        reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`));
       }
     };
 

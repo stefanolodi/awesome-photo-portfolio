@@ -75,7 +75,8 @@ export function AlbumForm({ album, onClose }: Props) {
 
       onClose();
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Something went wrong: ${msg}`);
       console.error(err);
     } finally {
       setIsSubmitting(false);
