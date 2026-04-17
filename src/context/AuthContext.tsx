@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { queryClient } from '../lib/queryClient';
 
 const OWNER_USER_ID = import.meta.env.VITE_OWNER_USER_ID as string;
 
@@ -24,8 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        queryClient.invalidateQueries();
+      }
     });
 
     return () => subscription.unsubscribe();
