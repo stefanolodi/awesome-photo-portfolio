@@ -25,6 +25,7 @@ import { useReorderPhotos, useUpdatePhoto, useDeletePhoto } from './hooks/usePho
 import { AlbumForm } from './components/AlbumForm';
 import { PhotoUpload } from './components/PhotoUpload';
 import { PhotoEditModal } from './components/PhotoEditModal';
+import { GateLock } from './components/GateLock';
 import { LoginPage } from './pages/LoginPage';
 import type { Album, Photo } from './types';
 
@@ -54,18 +55,20 @@ export function App() {
   const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/"
-        element={<HomePage theme={theme} onToggleTheme={toggleTheme} />}
-      />
-      <Route
-        path="/album/:albumId"
-        element={<AlbumPage theme={theme} onToggleTheme={toggleTheme} />}
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <GateLock>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={<HomePage theme={theme} onToggleTheme={toggleTheme} />}
+        />
+        <Route
+          path="/album/:albumId"
+          element={<AlbumPage theme={theme} onToggleTheme={toggleTheme} />}
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </GateLock>
   );
 }
 

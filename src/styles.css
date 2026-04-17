@@ -1530,3 +1530,190 @@ body {
     bottom: 0.75rem;
   }
 }
+
+/* ─── Gate Lock ───────────────────────────────────────────────────────────── */
+
+.gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: oklch(0.09 0.014 255 / 0.62);
+  backdrop-filter: blur(10px) saturate(0.65);
+  -webkit-backdrop-filter: blur(10px) saturate(0.65);
+  animation: gate-overlay-in 400ms cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+.gate-overlay.is-unlocking {
+  animation: gate-overlay-out 520ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes gate-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes gate-overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.gate-card {
+  position: relative;
+  width: min(440px, 100%);
+  background: color-mix(in oklch, var(--panel) 97%, var(--brand) 3%);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--ink) 6%, transparent),
+    0 48px 80px -32px color-mix(in oklch, oklch(0.06 0.02 255) 72%, transparent);
+  padding: clamp(2rem, 5vw, 2.8rem);
+  animation: gate-card-in 560ms cubic-bezier(0.22, 0.88, 0.36, 1) both;
+  animation-delay: 80ms;
+}
+
+.gate-card.is-shaking {
+  animation: gate-shake 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes gate-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gate-shake {
+  0%, 100% { transform: translateX(0); }
+  12%       { transform: translateX(-9px); }
+  28%       { transform: translateX(9px); }
+  44%       { transform: translateX(-6px); }
+  60%       { transform: translateX(6px); }
+  76%       { transform: translateX(-3px); }
+  88%       { transform: translateX(3px); }
+}
+
+.gate-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    var(--accent-orange),
+    color-mix(in oklch, var(--accent-orange) 55%, var(--panel))
+  );
+}
+
+.gate-eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.gate-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 0 0 0.9rem;
+  color: var(--ink);
+}
+
+.gate-sub {
+  margin: 0 0 1.8rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1.6rem;
+}
+
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gate-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.gate-input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  background: color-mix(in oklch, var(--bg) 65%, var(--panel) 35%);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  border-radius: 0;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.gate-input:focus {
+  outline: none;
+  border-color: color-mix(in oklch, var(--brand) 65%, var(--panel));
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand) 13%, transparent);
+}
+
+.gate-input::placeholder {
+  color: color-mix(in oklch, var(--ink-soft) 50%, transparent);
+  letter-spacing: 0.02em;
+}
+
+.gate-input-wrap.has-error .gate-input {
+  border-color: color-mix(in oklch, var(--accent-orange) 65%, var(--panel));
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent-orange) 12%, transparent);
+}
+
+.gate-error {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-orange-deep);
+  letter-spacing: 0.01em;
+}
+
+.gate-submit {
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: opacity 220ms ease, transform 200ms ease;
+}
+
+.gate-submit:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.gate-submit:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 760px) {
+  .gate-card {
+    padding: 1.8rem 1.5rem;
+  }
+}
