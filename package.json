@@ -1,0 +1,55 @@
+{
+  "name": "penny-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "screenshot": "node screenshot.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duamarketing/photo-portfolio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/duamarketing/photo-portfolio/issues"
+  },
+  "homepage": "https://github.com/duamarketing/photo-portfolio#readme",
+  "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.99.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^5.7.8",
+    "@vitejs/plugin-react": "^5.1.4",
+    "jsdom": "^28.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "puppeteer": "^24.37.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@supabase/supabase-js": "^2.103.3",
+    "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/react-query": "^5.99.0",
+    "cloudinary": "^2.9.0",
+    "clsx": "^2.1.1",
+    "lenis": "^1.3.17",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1"
+  }
+}
