@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
 import { deleteCloudinaryAsset } from '../lib/cloudinary';
-import type { Photo } from '../types';
+import type { Album, Photo } from '../types';
 
 const photosKey = (albumId: string) => ['photos', albumId] as const;
 const albumKey = (id: string) => ['album', id] as const;
@@ -109,24 +109,27 @@ export function useReorderPhotos(albumId: string) {
       if (error) throw error;
     },
     onMutate: async (updates) => {
-      await queryClient.cancelQueries({ queryKey: photosKey(albumId) });
-      const previous = queryClient.getQueryData<Photo[]>(photosKey(albumId));
-      queryClient.setQueryData<Photo[]>(photosKey(albumId), (old) => {
+      await queryClient.cancelQueries({ queryKey: albumKey(albumId) });
+      const previous = queryClient.getQueryData<Album>(albumKey(albumId));
+      queryClient.setQueryData<Album>(albumKey(albumId), (old) => {
         if (!old) return old;
         const orderMap = new Map(updates.map((u) => [u.id, u.display_order]));
-        return [...old]
-          .map((p) => ({ ...p, displayOrder: orderMap.get(p.id) ?? p.displayOrder }))
-          .sort((a, b) => a.displayOrder - b.displayOrder);
+        return {
+          ...old,
+          photos: [...old.photos]
+            .map((p) => ({ ...p, displayOrder: orderMap.get(p.id) ?? p.displayOrder }))
+            .sort((a, b) => a.displayOrder - b.displayOrder),
+        };
       });
       return { previous };
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(photosKey(albumId), context.previous);
+        queryClient.setQueryData(albumKey(albumId), context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: photosKey(albumId) });
+      queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
     },
   });
 }

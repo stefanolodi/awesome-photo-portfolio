@@ -1432,8 +1432,10 @@ body {
 .owner-toolbar {
   position: fixed;
   bottom: 1.25rem;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
   z-index: 40;
   display: flex;
   gap: 0.5rem;
