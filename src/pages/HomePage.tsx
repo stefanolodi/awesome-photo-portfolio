@@ -13,6 +13,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '../hooks/useAuth';
 import { useAlbums, useReorderAlbums } from '../hooks/useAlbums';
 import type { ThemeProps } from '../hooks/useTheme';
+import { ActionError } from '../components/ActionError';
 import { AlbumForm } from '../components/AlbumForm';
 import { AlbumCard } from '../components/AlbumCard';
 import { GallerySliderCard } from '../components/GallerySliderCard';
@@ -31,6 +32,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
   const [activeView, setActiveView] = useState<HomeView>('galleries');
   const [isFilterAnimating, setIsFilterAnimating] = useState(true);
   const [showAlbumForm, setShowAlbumForm] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const accessibleAlbums = useMemo(
     () => (isOwner ? albums : albums.filter((a) => !a.isPrivate)),
@@ -98,7 +100,9 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
     const newIndex = albums.findIndex((a) => a.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
     const reordered = arrayMove(albums, oldIndex, newIndex);
-    reorderAlbums.mutate(reordered.map((a, i) => ({ id: a.id, display_order: i })));
+    reorderAlbums.mutate(reordered.map((a, i) => ({ id: a.id, display_order: i })), {
+      onError: () => setActionError('The new album order could not be saved. Try again.'),
+    });
   };
 
   const scrollToGalleries = (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -128,6 +132,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
       {isOwner && (
         <OwnerSessionButton />
       )}
+      <ActionError message={actionError} onDismiss={() => setActionError('')} />
 
       {featuredAlbum && (
         <section className="opening-hero fade-in-up">
