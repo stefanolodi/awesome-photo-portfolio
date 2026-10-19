@@ -1712,6 +1712,20 @@ body {
   transform: translateY(0);
 }
 
+.gate-owner-link {
+  display: block;
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: color-mix(in oklch, var(--ink) 45%, transparent);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.gate-owner-link:hover {
+  color: var(--ink);
+}
+
 @media (max-width: 760px) {
   .gate-card {
     padding: 1.8rem 1.5rem;

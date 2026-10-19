@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const GATE_PASSWORD = import.meta.env.VITE_GUEST_PASSWORD as string | undefined;
@@ -79,6 +79,9 @@ export function GateLock({ children }: { children: ReactNode }) {
                 Enter
               </button>
             </form>
+            <Link to="/login" className="gate-owner-link">
+              Owner login
+            </Link>
           </div>
         </div>
       )}
