@@ -5,12 +5,12 @@ import { queryClient } from '../lib/queryClient';
 
 const OWNER_USER_ID = import.meta.env.VITE_OWNER_USER_ID as string;
 
-interface AuthContextValue {
+export interface AuthContextValue {
   session: Session | null;
   isOwner: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ error: AuthError | null }>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -20,15 +20,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setIsLoading(false);
-    });
+    // If the stored session cannot be read, the visitor starts signed out and the owner signs in again.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setSession(data.session))
+      .catch(() => setSession(null))
+      .finally(() => setIsLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-        queryClient.invalidateQueries();
+        void queryClient.invalidateQueries();
       }
     });
 
@@ -41,7 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    return { error };
   };
 
   const isOwner = !!session && session.user.id === OWNER_USER_ID;

@@ -68,7 +68,7 @@ export function useCreateAlbum() {
       return mapAlbum(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
     },
   });
 }
@@ -93,8 +93,8 @@ export function useUpdateAlbum() {
       return mapAlbum(data);
     },
     onSuccess: (album) => {
-      queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
-      queryClient.invalidateQueries({ queryKey: albumKey(album.id) });
+      void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: albumKey(album.id) });
     },
   });
 }
@@ -106,7 +106,7 @@ export function useDeleteAlbum() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
     },
   });
 }
@@ -135,7 +135,7 @@ export function useReorderAlbums() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
     },
   });
 }

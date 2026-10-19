@@ -91,7 +91,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
     return (
       <main className="shell">
         <p>Album not found.</p>
-        <button className="nav-item" onClick={() => navigate('/')} type="button">Back home</button>
+        <button className="nav-item" onClick={() => void navigate('/')} type="button">Back home</button>
       </main>
     );
   }
@@ -104,7 +104,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           isDark={theme === 'dark'}
           onToggle={(nextIsDark) => { if ((nextIsDark ? 'dark' : 'light') !== theme) onToggleTheme(); }}
         />
-        <button className="back-link" type="button" onClick={() => navigate('/')}>Back to albums</button>
+        <button className="back-link" type="button" onClick={() => void navigate('/')}>Back to albums</button>
         <section className="gallery-wrap">
           <h1>Private gallery</h1>
           <p>This gallery is only visible to the owner.</p>
@@ -120,7 +120,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
         isDark={theme === 'dark'}
         onToggle={(nextIsDark) => { if ((nextIsDark ? 'dark' : 'light') !== theme) onToggleTheme(); }}
       />
-      <button className="back-link" type="button" onClick={() => navigate('/')}>Back to albums</button>
+      <button className="back-link" type="button" onClick={() => void navigate('/')}>Back to albums</button>
 
       <section className="album-hero opening-hero fade-in-up">
         <img alt={album.title} src={album.cover} onError={(e) => setImageFallback(e, album.title)} />

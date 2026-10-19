@@ -14,12 +14,17 @@ export function LoginPage() {
     event.preventDefault();
     setError('');
     setIsLoading(true);
-    const { error } = await signIn(email, password);
-    setIsLoading(false);
-    if (error) {
-      setError('Invalid email or password.');
-    } else {
-      navigate('/');
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError('Invalid email or password.');
+      } else {
+        void navigate('/');
+      }
+    } catch {
+      setError('Could not reach the server. Try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -29,7 +34,7 @@ export function LoginPage() {
         <p className="login-eyebrow">Private Archive</p>
         <h1 className="login-heading">Owner sign in</h1>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={(e) => void handleSubmit(e)}>
           {error && <p className="login-error">{error}</p>}
 
           <div className="field">
