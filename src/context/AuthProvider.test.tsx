@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { render, screen } from '@testing-library/react';
-import { AuthContext, AuthProvider } from './AuthContext';
+import { AuthContext } from './AuthContext';
+import { AuthProvider } from './AuthProvider';
 
 vi.mock('../lib/supabase', () => ({
   supabase: {

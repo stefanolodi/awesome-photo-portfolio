@@ -1,19 +1,10 @@
-import { createContext, useEffect, useState, type ReactNode } from 'react';
-import type { Session, AuthError } from '@supabase/supabase-js';
+import { useEffect, useState, type ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { AuthContext } from './AuthContext';
 import { supabase } from '../lib/supabase';
 import { queryClient } from '../lib/queryClient';
 
 const OWNER_USER_ID = import.meta.env.VITE_OWNER_USER_ID as string;
-
-export interface AuthContextValue {
-  session: Session | null;
-  isOwner: boolean;
-  isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signOut: () => Promise<{ error: AuthError | null }>;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);

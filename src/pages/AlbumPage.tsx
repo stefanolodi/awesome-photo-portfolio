@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext,
@@ -20,6 +20,7 @@ import { PhotoEditModal } from '../components/PhotoEditModal';
 import { PhotoLightbox } from '../components/PhotoLightbox';
 import { PhotoTile } from '../components/PhotoTile';
 import { setImageFallback } from '../lib/setImageFallback';
+import { stepPhotoId } from '../lib/stepPhotoId';
 import type { Photo } from '../types';
 
 export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
@@ -38,24 +39,19 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const [showEditAlbum, setShowEditAlbum] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
 
-  const photos = album?.photos ?? [];
+  const photos = useMemo(() => album?.photos ?? [], [album]);
   const selectedPhoto = photos.find((p) => p.id === selectedPhotoId) ?? null;
 
   const moveSelection = (direction: 'next' | 'prev') => {
-    if (!selectedPhoto) return;
-    const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
-    if (currentIndex < 0) return;
-    const step = direction === 'next' ? 1 : -1;
-    const nextIndex = (currentIndex + step + photos.length) % photos.length;
-    setSelectedPhotoId(photos[nextIndex]?.id ?? null);
+    setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, direction));
   };
 
   useEffect(() => {
     if (!selectedPhotoId) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setSelectedPhotoId(null);
-      if (event.key === 'ArrowRight') moveSelection('next');
-      if (event.key === 'ArrowLeft') moveSelection('prev');
+      if (event.key === 'ArrowRight') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'next'));
+      if (event.key === 'ArrowLeft') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'prev'));
     };
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
@@ -63,7 +59,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [selectedPhotoId, selectedPhoto, photos]);
+  }, [selectedPhotoId, photos]);
 
   const handlePhotoDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

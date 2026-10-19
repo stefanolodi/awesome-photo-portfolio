@@ -34,7 +34,7 @@ src/
   pages/           # One file per route: HomePage, AlbumPage, LoginPage
   components/      # Shared components, one per file
   components/ui/   # Theme toggle
-  context/         # AuthContext: the Supabase session and isOwner
+  context/         # AuthContext and AuthProvider: the Supabase session and isOwner
   hooks/           # useAlbums and usePhotos (react-query over Supabase), useAuth, useTheme
   lib/             # Supabase client, Cloudinary calls, row mappers, queryClient, cn
   test/            # fakeSupabase and renderWithProviders for tests
