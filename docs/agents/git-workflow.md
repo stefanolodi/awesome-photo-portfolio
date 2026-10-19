@@ -2,7 +2,7 @@
 
 How a change reaches `main`. Agents and humans follow the same loop. `main` takes commits only through squash-merged pull requests.
 
-GitHub enforces part of this. The repo allows squash merges only and deletes a branch when its PR merges. Nothing on the server stops a direct push to `main`, because branch protection on a private repo needs a paid plan. The guard hook (`.claude/hooks/block-main-writes.sh`) stops agents from committing or pushing on `main`. Nothing stops a human, so that part rests on you. CI checks every PR, but GitHub lets you merge a red PR anyway. Treat red as a hard stop.
+GitHub enforces this. The repo allows squash merges only and deletes a branch when its PR merges. Branch protection on `main` rejects a direct push, a force push and a deletion, from admins too. It blocks a merge until the `PR title is a Conventional Commit` and `Verify passes` checks are green. It asks for no approving review, because a solo owner cannot approve their own PR. The guard hook (`.claude/hooks/block-main-writes.sh`) stops agents from committing or pushing on `main` before GitHub has to.
 
 ## The loop
 
