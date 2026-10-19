@@ -1490,6 +1490,56 @@ body {
   background: color-mix(in oklch, var(--accent-orange) 12%, transparent);
 }
 
+/* ─── Action error ────────────────────────────────────────────────────────── */
+
+/* Sits above the lightbox and the modals, because a note edit fails while the lightbox is open. */
+.action-error {
+  position: fixed;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(32rem, calc(100% - 2rem));
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.65rem 0.65rem 1rem;
+  background: color-mix(in oklch, var(--accent-orange) 12%, var(--panel));
+  border: 1px solid color-mix(in oklch, var(--accent-orange) 40%, var(--panel));
+  border-radius: 14px;
+  box-shadow: 0 24px 40px -20px color-mix(in oklch, var(--brand-deep) 38%, transparent);
+  color: var(--accent-orange-deep);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  animation: fade-up 400ms cubic-bezier(0.18, 0.88, 0.32, 1.03) both;
+}
+
+.action-error p {
+  flex: 1;
+  margin: 0;
+}
+
+.action-error-dismiss {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action-error-dismiss:hover {
+  background: color-mix(in oklch, var(--accent-orange) 14%, transparent);
+}
+
+.action-error-dismiss:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 /* ─── Home owner action bar ───────────────────────────────────────────────── */
 
 .home-owner-bar {

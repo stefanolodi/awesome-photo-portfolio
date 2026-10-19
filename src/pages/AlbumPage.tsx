@@ -14,6 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAlbum, useUpdateAlbum } from '../hooks/useAlbums';
 import { useReorderPhotos, useUpdatePhoto, useDeletePhoto } from '../hooks/usePhotos';
 import type { ThemeProps } from '../hooks/useTheme';
+import { ActionError } from '../components/ActionError';
 import { AlbumForm } from '../components/AlbumForm';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoEditModal } from '../components/PhotoEditModal';
@@ -38,6 +39,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const [showUpload, setShowUpload] = useState(false);
   const [showEditAlbum, setShowEditAlbum] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
+  const [actionError, setActionError] = useState('');
 
   const photos = useMemo(() => album?.photos ?? [], [album]);
   const selectedPhoto = photos.find((p) => p.id === selectedPhotoId) ?? null;
@@ -68,17 +70,33 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
     const newIndex = photos.findIndex((p) => p.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
     const reordered = arrayMove(photos, oldIndex, newIndex);
-    reorderPhotos.mutate(reordered.map((p, i) => ({ id: p.id, display_order: i })));
+    reorderPhotos.mutate(reordered.map((p, i) => ({ id: p.id, display_order: i })), {
+      onError: () => setActionError('The new photo order could not be saved. Try again.'),
+    });
   };
 
   const handleNoteChange = (photoId: string, note: string) => {
     if (!album) return;
-    updatePhoto.mutate({ id: photoId, albumId: album.id, note });
+    updatePhoto.mutate({ id: photoId, albumId: album.id, note }, {
+      onError: () => setActionError('The note could not be saved. Try again.'),
+    });
+  };
+
+  const deleteAlbumPhoto = (photo: Photo) => {
+    if (!album) return;
+    deletePhoto.mutate({ id: photo.id, albumId: album.id, publicId: photo.publicId }, {
+      onError: () => setActionError('The photo could not be deleted. Try again.'),
+    });
   };
 
   const toggleAlbumPrivacy = () => {
     if (!album) return;
-    updateAlbum.mutate({ id: album.id, isPrivate: !album.isPrivate });
+    const message = album.isPrivate
+      ? 'The album could not be made public, so it is still private. Try again.'
+      : 'The album could not be made private, so it is still public. Try again.';
+    updateAlbum.mutate({ id: album.id, isPrivate: !album.isPrivate }, {
+      onError: () => setActionError(message),
+    });
   };
 
   if (isLoading) return <main className="shell" />;
@@ -117,6 +135,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
         onToggle={(nextIsDark) => { if ((nextIsDark ? 'dark' : 'light') !== theme) onToggleTheme(); }}
       />
       <button className="back-link" type="button" onClick={() => void navigate('/')}>Back to albums</button>
+      <ActionError message={actionError} onDismiss={() => setActionError('')} />
 
       <section className="album-hero opening-hero fade-in-up">
         <img alt={album.title} src={album.cover} onError={(e) => setImageFallback(e, album.title)} />
@@ -144,7 +163,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
                     photo={photo}
                     isActive={selectedPhoto?.id === photo.id}
                     onSelect={() => setSelectedPhotoId(photo.id)}
-                    onDelete={() => deletePhoto.mutate({ id: photo.id, albumId: album.id, publicId: photo.publicId })}
+                    onDelete={() => deleteAlbumPhoto(photo)}
                   />
                 ))}
               </div>
