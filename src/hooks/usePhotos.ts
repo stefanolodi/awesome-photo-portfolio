@@ -56,8 +56,8 @@ export function useCreatePhoto() {
       return mapPhoto(data);
     },
     onSuccess: (_photo, variables) => {
-      queryClient.invalidateQueries({ queryKey: photosKey(variables.albumId) });
-      queryClient.invalidateQueries({ queryKey: albumKey(variables.albumId) });
+      void queryClient.invalidateQueries({ queryKey: photosKey(variables.albumId) });
+      void queryClient.invalidateQueries({ queryKey: albumKey(variables.albumId) });
     },
   });
 }
@@ -96,8 +96,8 @@ export function useDeletePhoto() {
       return { albumId };
     },
     onSuccess: (_data, { albumId }) => {
-      queryClient.invalidateQueries({ queryKey: photosKey(albumId) });
-      queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
+      void queryClient.invalidateQueries({ queryKey: photosKey(albumId) });
+      void queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
     },
   });
 }
@@ -129,7 +129,7 @@ export function useReorderPhotos(albumId: string) {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
+      void queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
     },
   });
 }

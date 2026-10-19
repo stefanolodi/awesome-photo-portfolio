@@ -92,7 +92,7 @@ export function AlbumForm({ album, onClose }: Props) {
           <button type="button" className="panel-close" onClick={onClose} aria-label="Close">×</button>
         </div>
 
-        <form className="panel-scroll" onSubmit={handleSubmit} id="album-form">
+        <form className="panel-scroll" onSubmit={(e) => void handleSubmit(e)} id="album-form">
           {error && <p className="login-error">{error}</p>}
 
           <div className="field">

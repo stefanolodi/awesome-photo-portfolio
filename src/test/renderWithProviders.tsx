@@ -2,18 +2,19 @@ import type { ReactElement, ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext, type AuthContextValue } from '../context/AuthContext';
 
-type Options = { path?: string; isOwner?: boolean };
+type Options = { path?: string; isOwner?: boolean; auth?: Partial<AuthContextValue> };
 
-export function renderWithProviders(ui: ReactElement, { path = '/', isOwner = false }: Options = {}) {
+export function renderWithProviders(ui: ReactElement, { path = '/', isOwner = false, auth: authOverrides }: Options = {}) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const auth = {
+  const auth: AuthContextValue = {
     session: null,
     isOwner,
     isLoading: false,
     signIn: () => Promise.resolve({ error: null }),
-    signOut: () => Promise.resolve(),
+    signOut: () => Promise.resolve({ error: null }),
+    ...authOverrides,
   };
 
   const wrapper = ({ children }: { children: ReactNode }) => (

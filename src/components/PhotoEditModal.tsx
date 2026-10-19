@@ -12,11 +12,17 @@ export function PhotoEditModal({ photo, albumId, onClose }: Props) {
   const updatePhoto = useUpdatePhoto();
   const [title, setTitle] = useState(photo.title);
   const [note, setNote] = useState(photo.note);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await updatePhoto.mutateAsync({ id: photo.id, albumId, title, note });
-    onClose();
+    setError('');
+    try {
+      await updatePhoto.mutateAsync({ id: photo.id, albumId, title, note });
+      onClose();
+    } catch {
+      setError('The photo could not be saved. Try again.');
+    }
   };
 
   return (
@@ -24,7 +30,8 @@ export function PhotoEditModal({ photo, albumId, onClose }: Props) {
       <div className="photo-edit-backdrop" onClick={onClose} />
       <div className="photo-edit-card" role="dialog" aria-modal="true" aria-label="Edit photo">
         <h2 className="photo-edit-title">Edit photo</h2>
-        <form className="photo-edit-form" onSubmit={handleSubmit}>
+        <form className="photo-edit-form" onSubmit={(e) => void handleSubmit(e)}>
+          {error && <p className="login-error">{error}</p>}
           <div className="field">
             <label className="field-label" htmlFor="photo-title">Title</label>
             <input

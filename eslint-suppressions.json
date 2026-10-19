@@ -1,45 +1,12 @@
 {
-  "src/components/AlbumForm.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    }
-  },
   "src/components/GateLock.tsx": {
     "no-empty": {
       "count": 1
     }
   },
-  "src/components/OwnerSessionButton.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    }
-  },
-  "src/components/PhotoEditModal.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    }
-  },
-  "src/components/PhotoUpload.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    }
-  },
   "src/context/AuthContext.tsx": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    },
     "react-refresh/only-export-components": {
       "count": 1
-    }
-  },
-  "src/hooks/useAlbums.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 5
-    }
-  },
-  "src/hooks/usePhotos.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 5
     }
   },
   "src/lib/cloudinary.ts": {
@@ -54,23 +21,12 @@
     }
   },
   "src/pages/AlbumPage.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 3
-    },
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
   },
   "src/pages/HomePage.tsx": {
     "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "src/pages/LoginPage.tsx": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
-    },
-    "@typescript-eslint/no-misused-promises": {
       "count": 1
     }
   }

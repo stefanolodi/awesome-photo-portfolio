@@ -24,6 +24,7 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [isDragover, setIsDragover] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,8 +73,16 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
   const handleUpload = async () => {
     if (!session || files.length === 0) return;
     setIsUploading(true);
+    setError('');
 
-    const sig = await getUploadSignature(session.access_token);
+    let sig;
+    try {
+      sig = await getUploadSignature(session.access_token);
+    } catch {
+      setError('The upload could not start. Try again.');
+      setIsUploading(false);
+      return;
+    }
 
     const pending = files.filter((f) => f.status === 'pending');
     const results = await Promise.allSettled(
@@ -138,6 +147,8 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
         </div>
       </div>
 
+      {error && <p className="login-error">{error}</p>}
+
       {files.length > 0 && (
         <>
           <div className="upload-file-grid">
@@ -188,7 +199,7 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
             <button
               type="button"
               className="btn-primary"
-              onClick={handleUpload}
+              onClick={() => void handleUpload()}
               disabled={isUploading || pendingCount === 0}
             >
               {isUploading ? <><span className="spinner" /> Uploading…</> : `Upload ${pendingCount} photo${pendingCount !== 1 ? 's' : ''}`}
