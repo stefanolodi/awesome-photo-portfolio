@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { v2 as cloudinary } from 'cloudinary';
-import { createClient } from '@supabase/supabase-js';
+import { authorizeOwner } from './_lib/authorizeOwner.js';
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME ?? process.env.VITE_CLOUDINARY_CLOUD_NAME;
 
@@ -10,26 +10,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-async function getAuthedUser(authHeader: string | undefined) {
-  if (!authHeader?.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7);
-  const supabase = createClient(
-    process.env.VITE_SUPABASE_URL!,
-    process.env.VITE_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false } }
-  );
-  const { data: { user } } = await supabase.auth.getUser(token);
-  return user;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const user = await getAuthedUser(req.headers.authorization);
-  if (!user) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  const denied = await authorizeOwner(req.headers.authorization);
+  if (denied) {
+    return res.status(denied.status).json({ error: denied.error });
   }
 
   const timestamp = Math.round(Date.now() / 1000);
