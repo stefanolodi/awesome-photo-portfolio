@@ -53,7 +53,7 @@ describe('sign-cloudinary-upload', () => {
   it('returns 403 for a signed-in user who is not the owner', async () => {
     const res = await call('Bearer stranger-token');
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).not.toHaveBeenCalledWith(expect.objectContaining({ signature: expect.anything() }));
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({ error: 'Forbidden' });
   });
 
   it('returns 403 for everyone when OWNER_USER_ID is unset', async () => {
