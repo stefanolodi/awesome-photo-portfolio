@@ -23,11 +23,13 @@ All state is **in-memory React state** — no backend or persistence yet.
 
 ```
 src/
-  App.tsx          # All page components and main routing
+  App.tsx          # Routes only
+  pages/           # One file per route: HomePage, AlbumPage, LoginPage
   data.ts          # Seed albums (picsum.photos placeholders)
   types.ts         # Album and Photo types
   styles.css       # All styles (CSS custom props + Tailwind utilities)
   useSmoothScroll.ts
+  components/      # Shared components, one per file
   components/ui/
     theme-toggle.tsx
 ```
