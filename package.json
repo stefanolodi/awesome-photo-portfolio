@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && tsc --noEmit -p api && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "screenshot": "node screenshot.mjs",
-    "lint": "eslint --max-warnings 0 src",
+    "lint": "eslint --max-warnings 0 src api",
     "verify": "npm run lint && npm run build && npm run test"
   },
   "repository": {

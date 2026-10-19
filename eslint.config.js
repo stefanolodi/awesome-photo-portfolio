@@ -5,24 +5,38 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
+const typeChecked = {
+  parserOptions: {
+    projectService: true,
+    tsconfigRootDir: import.meta.dirname
+  }
+};
+
 // ADR 0003. Findings that predate the linter live in eslint-suppressions.json.
-export default defineConfig({
-  files: ['src/**/*.{ts,tsx}'],
-  extends: [
-    js.configs.recommended,
-    tseslint.configs.recommendedTypeChecked,
-    reactHooks.configs.flat.recommended,
-    reactRefresh.configs.vite
-  ],
-  languageOptions: {
-    globals: globals.browser,
-    parserOptions: {
-      projectService: true,
-      tsconfigRootDir: import.meta.dirname
+export default defineConfig(
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite
+    ],
+    languageOptions: {
+      globals: globals.browser,
+      ...typeChecked
+    },
+    rules: {
+      // Bulk suppressions record errors only, and verify fails on warnings anyway.
+      'react-hooks/exhaustive-deps': 'error'
     }
   },
-  rules: {
-    // Bulk suppressions record errors only, and verify fails on warnings anyway.
-    'react-hooks/exhaustive-deps': 'error'
+  {
+    files: ['api/**/*.ts'],
+    extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      globals: globals.node,
+      ...typeChecked
+    }
   }
-});
+);
