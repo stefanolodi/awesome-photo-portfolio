@@ -112,3 +112,26 @@ The repo uses the five default labels: `needs-triage`, `needs-info`, `ready-for-
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+<!-- stefanolodi-setup-repo -->
+## Workflow
+
+### Coding standards
+
+How code is written here, the commands for install and verify, and the definition of done. See `docs/agents/coding-standards.md`.
+
+### Git workflow
+
+Feature branches, declarative conventional commits, PR bodies from the `pr` skill, squash merges only. See `docs/agents/git-workflow.md`.
+
+### AFK pipeline
+
+`afk-run` takes `ready-for-agent` issues through `afk-implement`, `afk-code-review` and `afk-pr`, one fresh subagent per stage, handing off through files under `.git/afk/<n>/`. See `docs/agents/afk.md`.
+
+### ADRs
+
+When `docs/adr/README.md` exists, read it and not the `docs/adr/` directory. It holds one line per decision. Open a single ADR only when you are changing what it governs. Every new ADR adds its line to the index in the same commit, and the first ADR creates the index.
+
+### Handoff notes
+
+`docs/handoff/` holds one file per investigation that outlived its PR, such as a platform bug we work around or a diagnosis the code does not explain. Name it `<issue>-<slug>.md` and list it here with one line. Read one only when the code points you at it. A comment that depends on a handoff names the file.
