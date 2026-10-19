@@ -5,13 +5,17 @@ A private, personal photo portfolio app. The owner browses and curates their pho
 ## Stack
 
 - **React 19** + **Vite 7** + **TypeScript 5**
-- **Tailwind CSS v4** (via `@tailwindcss/vite` plugin — no `tailwind.config.js`, configured in CSS)
+- **Tailwind CSS v4** (via the `@tailwindcss/vite` plugin, configured in CSS, with no `tailwind.config.js`)
 - **react-router-dom v7** for routing
+- **@tanstack/react-query** for reading and writing Supabase data
+- **Supabase** (`@supabase/supabase-js`) for the database and the owner's sign-in
+- **Cloudinary** for photo files
+- **Vercel** hosts the Vite build and the functions in `api/`
 - **@dnd-kit** (core + sortable + utilities) for drag-and-drop reordering
 - **Lenis** for smooth scroll (`window.__lenis` global)
 - **lucide-react** for icons
 - **vitest + @testing-library/react** for tests
-- **Puppeteer** available for screenshot capture (`npm run screenshot`)
+- **Puppeteer** for screenshot capture (`npm run screenshot`)
 
 ## Path alias
 
@@ -19,42 +23,51 @@ A private, personal photo portfolio app. The owner browses and curates their pho
 
 ## Architecture
 
-All state is **in-memory React state** — no backend or persistence yet.
+The browser reads and writes the `albums` and `photos` tables in Supabase directly, with the public anon key. Supabase row-level security hides private albums from guests and lets only the owner write. The client filter only shapes the UI. Photo files live in Cloudinary. The browser uploads a photo straight to Cloudinary with a signature from `api/sign-cloudinary-upload`, and `api/delete-cloudinary-asset` deletes one. Both functions hold the Cloudinary secret and check the owner's user id in `api/_lib/authorizeOwner.ts`.
+
+The reasons for these choices are in `docs/adr/README.md`.
 
 ```
 src/
-  App.tsx          # Routes only
+  main.tsx         # Providers: router, react-query, AuthProvider
+  App.tsx          # The gate and the routes
   pages/           # One file per route: HomePage, AlbumPage, LoginPage
-  data.ts          # Seed albums (picsum.photos placeholders)
-  types.ts         # Album and Photo types
+  components/      # Shared components, one per file
+  components/ui/   # Theme toggle
+  context/         # AuthContext: the Supabase session and isOwner
+  hooks/           # useAlbums and usePhotos (react-query over Supabase), useAuth, useTheme
+  lib/             # Supabase client, Cloudinary calls, row mappers, queryClient, cn
+  test/            # fakeSupabase and renderWithProviders for tests
+  types.ts         # Album and Photo
   styles.css       # All styles (CSS custom props + Tailwind utilities)
   useSmoothScroll.ts
-  components/      # Shared components, one per file
-  components/ui/
-    theme-toggle.tsx
-```
-
-### Core types
-
-```ts
-type Photo  = { id, src, title, note }
-type Album  = { id, isPrivate, year, title, eventDate, cover, description, photos[] }
+  data.ts          # Seed albums from the in-memory version. Nothing imports it.
+api/
+  sign-cloudinary-upload.ts
+  delete-cloudinary-asset.ts
+  _lib/authorizeOwner.ts
 ```
 
 ### Routing
 
-- `/` — HomePage (hero + album grid + year filter + all-photos feed)
-- `/album/:albumId` — AlbumPage (hero + masonry photo grid + lightbox)
+- `/` is HomePage: hero, album grid, year filter and the all-photos feed.
+- `/album/:albumId` is AlbumPage: hero, masonry photo grid and lightbox.
+- `/login` is LoginPage, where the owner signs in with Supabase email and password.
 
-### Owner vs Guest mode
+### Owner and guest
 
-Toggled via `viewerMode` state (`'owner' | 'guest'`). In owner mode:
-- Private albums are visible and editable
-- Drag-and-drop reordering is active (albums on home, photos in album)
-- Per-photo notes are editable
-- Privacy toggle available on album hero
+The owner is the Supabase user whose id matches `VITE_OWNER_USER_ID` in the client and `OWNER_USER_ID` in the functions. Everyone else is a guest. Components read `isOwner` from `useAuth()`.
 
-In guest mode: private albums are hidden/blocked; lightbox notes are read-only.
+The owner sees private albums, creates and edits albums, switches an album between private and public, uploads photos, reorders albums and photos by drag and drop, and writes notes. A guest sees public albums only and reads notes.
+
+### Gate
+
+`GateLock` in `App.tsx` covers every page except `/login`. A guest unlocks it with `VITE_GUEST_PASSWORD`, and `sessionStorage` keeps it unlocked for the tab. The owner skips it. The password ships in the bundle, so the gate keeps strangers out and protects nothing. See ADR 0001.
+
+### Environment variables
+
+- Client: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_OWNER_USER_ID`, `VITE_GUEST_PASSWORD`.
+- Functions in `api/`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `OWNER_USER_ID`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_CLOUD_NAME` (falls back to `VITE_CLOUDINARY_CLOUD_NAME`).
 
 ## Dev commands
 
@@ -98,10 +111,7 @@ Design references are in `references/`:
 
 ## Planned features (not yet built)
 
-- Owner authentication
-- Real photo upload and cloud storage
-- Shareable public links with optional password protection
-- Backend persistence
+- Shareable links, with an optional password
 
 ## Agent skills
 
