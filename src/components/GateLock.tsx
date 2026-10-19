@@ -9,7 +9,11 @@ function readStorage(): boolean {
   try { return sessionStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
 }
 function writeStorage() {
-  try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch {}
+  try {
+    sessionStorage.setItem(STORAGE_KEY, '1');
+  } catch {
+    // With storage blocked the gate still unlocks, and asks again on the next page load.
+  }
 }
 
 export function GateLock({ children }: { children: ReactNode }) {

@@ -29,7 +29,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const [activeView, setActiveView] = useState<HomeView>('galleries');
-  const [isFilterAnimating, setIsFilterAnimating] = useState(false);
+  const [isFilterAnimating, setIsFilterAnimating] = useState(true);
   const [showAlbumForm, setShowAlbumForm] = useState(false);
 
   const accessibleAlbums = useMemo(
@@ -59,8 +59,8 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
     [accessibleAlbums]
   );
 
+  // setViewWithStableScroll turns isFilterAnimating on, and two frames later the content fades in from it.
   useEffect(() => {
-    setIsFilterAnimating(true);
     let rafB = 0;
     const rafA = window.requestAnimationFrame(() => {
       rafB = window.requestAnimationFrame(() => setIsFilterAnimating(false));
@@ -87,6 +87,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
   const setViewWithStableScroll = (nextView: HomeView) => {
     if (nextView === activeView) return;
     scrollLockRef.current = window.__lenis?.scroll ?? window.scrollY;
+    setIsFilterAnimating(true);
     setActiveView(nextView);
   };
 
