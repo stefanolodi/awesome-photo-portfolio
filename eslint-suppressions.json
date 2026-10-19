@@ -1,9 +1,4 @@
 {
-  "src/App.test.tsx": {
-    "@typescript-eslint/require-await": {
-      "count": 1
-    }
-  },
   "src/App.tsx": {
     "@typescript-eslint/no-misused-promises": {
       "count": 4
