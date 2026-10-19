@@ -1,0 +1,25 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title is a Conventional Commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR title: $TITLE"
+          echo "$TITLE" | grep -Eq '^(feat|fix|docs|chore|refactor|test|ci|perf|build)(\(.+\))?!?: .+' \
+            || { echo "::error::The PR title must be a Conventional Commit, such as 'feat: every rate cell states its unit'"; exit 1; }
