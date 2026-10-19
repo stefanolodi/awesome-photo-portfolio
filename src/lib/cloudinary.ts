@@ -1,17 +1,5 @@
-export interface CloudinaryUploadResult {
-  url: string;
-  publicId: string;
-  width: number;
-  height: number;
-}
-
-interface UploadSignature {
-  signature: string;
-  timestamp: number;
-  apiKey: string;
-  cloudName: string;
-  folder: string;
-}
+import { parseCloudinaryUpload, type CloudinaryUploadResult } from './parseCloudinaryUpload';
+import { parseUploadSignature, type UploadSignature } from './parseUploadSignature';
 
 export async function getUploadSignature(authToken: string): Promise<UploadSignature> {
   const response = await fetch('/api/sign-cloudinary-upload', {
@@ -22,7 +10,7 @@ export async function getUploadSignature(authToken: string): Promise<UploadSigna
     const body = await response.text().catch(() => '');
     throw new Error(`Failed to get upload signature (${response.status}): ${body}`);
   }
-  return response.json();
+  return parseUploadSignature(await response.json());
 }
 
 export function uploadToCloudinary(
@@ -49,13 +37,12 @@ export function uploadToCloudinary(
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        const data = JSON.parse(xhr.responseText);
-        resolve({
-          url: data.secure_url,
-          publicId: data.public_id,
-          width: data.width,
-          height: data.height,
-        });
+        // A throw inside onload would escape the promise and leave the upload pending forever.
+        try {
+          resolve(parseCloudinaryUpload(JSON.parse(xhr.responseText)));
+        } catch (error) {
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
       } else {
         reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`));
       }
