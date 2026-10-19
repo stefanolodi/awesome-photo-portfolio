@@ -1,34 +1,22 @@
 name: CI
 
+# No `edited` trigger. A skipped job counts as a passing required check, so a title edit
+# that skipped verify would replace a red verify with a green one.
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
 
-# A new push cancels the last push's run. Edits get their own group so they never cancel a verify.
+# A new push cancels the last push's run.
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}-${{ github.event.action == 'edited' && 'edit' || 'code' }}
+  group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  pr-title:
-    name: PR title is a Conventional Commit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check the title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          echo "PR title: $TITLE"
-          echo "$TITLE" | grep -Eq '^(feat|fix|docs|chore|refactor|test|ci|perf|build)(\(.+\))?!?: .+' \
-            || { echo "::error::The PR title must be a Conventional Commit, such as 'feat: every rate cell states its unit'"; exit 1; }
-
   verify:
     name: Verify passes
-    # A title or body edit changes no code, so only pr-title reruns.
-    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
