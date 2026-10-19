@@ -5,10 +5,12 @@ A rule here is one sentence and a pointer. If it needs an argument, the argument
 ## Stack
 
 - Install dependencies: `npm ci`
-- Verify: `<verify command>`
+- Verify: `npm run verify`, which runs lint, then build, then test.
 - `package.json` is the fact. When this section disagrees with it, this section is wrong.
 - No new dependency without an ADR naming the need, the pick and the alternative rejected.
 - A dependency considered and rejected is listed here with its ADR.
+- Rejected: oxlint and Biome, in favour of ESLint. See ADR 0003.
+- New code adds no lint suppressions. A change that fixes a suppressed finding runs `npx eslint src --prune-suppressions`. See ADR 0003.
 
 ## Modules
 

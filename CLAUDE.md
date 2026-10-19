@@ -62,6 +62,8 @@ npm run build     # tsc + vite build
 npm run test      # vitest run (single pass)
 npm run test:watch
 npm run screenshot
+npm run lint      # eslint, fails on any warning
+npm run verify    # lint, then build, then test. CI runs the same
 ```
 
 ## Styling conventions
@@ -83,7 +85,7 @@ npm run screenshot
 - No photo downloads for guests
 - Preserve accessibility: semantic HTML, keyboard focus states, color contrast
 - Keep state predictable; no hidden side effects
-- Run `npm run test` before finishing any task; fix failures
+- Run `npm run verify` before finishing any task; fix failures
 
 ## Visual references
 
