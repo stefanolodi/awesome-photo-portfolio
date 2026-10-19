@@ -19,15 +19,26 @@ A rule here is one sentence and a pointer. If it needs an argument, the argument
 
 ## Rules that must not regress
 
-<!-- Domain rules whose breakage gives wrong results, each with the ADR that explains it. -->
+Words in these rules are defined in `GLOSSARY.md`.
+
+1. A guest never sees a private album or any of its photos. The Supabase policies enforce it, and the client filter only shapes the UI. See ADR 0002.
+2. A new album is private until the owner makes it public. See "Key rules" in `CLAUDE.md`.
+3. Only the owner creates, edits, reorders or deletes albums and photos. The Supabase policies and every function in `api/` check the owner's user id, not only that someone is signed in. See ADR 0002.
+4. The guest UI has no download control and no link to the original file. See "Key rules" in `CLAUDE.md` and ADR 0001.
+5. The gate covers every page except `/login`, and the owner skips it. See ADR 0001.
 
 ## Testing
 
-<!-- The runner, where tests live, and which suite needs what. -->
+- Tests run on vitest with jsdom and Testing Library. `npm run test` runs them all once.
+- A test sits next to the file it covers, named `<file>.test.ts` or `<file>.test.tsx`.
+- Every test mocks `./lib/supabase` with `vi.mock`, and no test touches the network.
+- Each rule under "Rules that must not regress" has a test that fails when the rule breaks.
 
 ## Comments and docs
 
-<!-- What this project comments, and where docs live. -->
+- A comment says why, when the code cannot. It never restates what the code does.
+- A comment that depends on a handoff note or an ADR names the file.
+- Domain words live in `GLOSSARY.md`, decisions in `docs/adr/`, agent workflow in `docs/agents/`, and long investigations in `docs/handoff/`. `CLAUDE.md` points at them.
 
 ## Definition of done
 
