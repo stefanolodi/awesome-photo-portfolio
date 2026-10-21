@@ -11,7 +11,7 @@ Your handoff directory is `"$(git rev-parse --path-format=absolute --git-common-
 
 ## Steps
 
-1. **Read the ticket.** `gh issue view <n> --comments`, and the spec its `## Parent` names, if any. Done when you can list every acceptance criterion. If a `Blocked by` issue is still open, or the ticket turns on a choice only a human can make, write the reason to `blocked.md` and stop.
+1. **Read the ticket.** `gh issue view <n> --json title,body,labels,state,comments`, and the spec its `## Parent` names, if any. Done when you can list every acceptance criterion. If a `Blocked by` issue is still open, or the ticket turns on a choice only a human can make, write the reason to `blocked.md` and stop.
 
 2. **Branch.** If the handoff directory already holds `branch`, this is a resumed run: switch to that branch and carry on. Otherwise `git fetch origin`, then `git switch -c <type>/<slug> origin/main` with a prefix from [git-workflow.md](../../../docs/agents/git-workflow.md), and write the branch name to `branch`.
 

@@ -24,7 +24,7 @@ An empty diff fails here: write it to `blocked.md` and stop.
 
 ### 2. The spec
 
-Issue `#<n>`: `gh issue view <n> --comments`, plus the spec its `## Parent` names, if any.
+Issue `#<n>`: `gh issue view <n> --json title,body,labels,state,comments`, plus the spec its `## Parent` names, if any.
 
 ### 3. The standards
 
