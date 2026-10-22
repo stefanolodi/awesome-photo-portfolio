@@ -6,10 +6,11 @@ import { renderWithProviders } from '../test/renderWithProviders';
 import { getUploadSignature, uploadToCloudinary } from '../lib/cloudinary';
 
 const db = vi.hoisted((): FakeDatabase => ({}));
+const failingReads = vi.hoisted(() => new Set<string>());
 
 vi.mock('../lib/supabase', async () => {
   const { fakeSupabase } = await import('../test/fakeSupabase');
-  return { supabase: fakeSupabase(db) };
+  return { supabase: fakeSupabase(db, failingReads) };
 });
 
 vi.mock('../lib/cloudinary', () => ({
@@ -26,6 +27,7 @@ function pick(container: HTMLElement, files: File[]) {
 
 beforeEach(() => {
   db.photos = [];
+  failingReads.clear();
   vi.mocked(getUploadSignature).mockReset();
   vi.mocked(uploadToCloudinary).mockReset();
 });
@@ -39,6 +41,19 @@ describe('PhotoUpload', () => {
 
     expect(await screen.findByText('The upload could not start. Try again.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Upload 1 photo' })).toBeEnabled();
+  });
+
+  it('does not start the upload when it cannot read the album\'s photo order', async () => {
+    db.photos = [{ id: 'old-1', album_id: 'album-1', title: 'old-1', display_order: 3 }];
+    failingReads.add('photos');
+    vi.mocked(getUploadSignature).mockResolvedValue({} as Awaited<ReturnType<typeof getUploadSignature>>);
+    const { container } = renderWithProviders(<PhotoUpload albumId="album-1" />, { isOwner: true, auth: { session } });
+    pick(container, [image('beach')]);
+    fireEvent.click(screen.getByRole('button', { name: 'Upload 1 photo' }));
+
+    expect(await screen.findByText('The upload could not start. Try again.')).toBeInTheDocument();
+    expect(uploadToCloudinary).not.toHaveBeenCalled();
+    expect(db.photos).toHaveLength(1);
   });
 
   it('puts new photos after the album\'s photos in grid order, whichever upload finishes first', async () => {

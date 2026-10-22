@@ -14,19 +14,26 @@ function compare(a: unknown, b: unknown): number {
 
 // Answers the query chains the hooks build, against rows the test owns. It ignores
 // row-level security, so it returns private rows to guests the way a broken policy would.
+type Mode = 'many' | 'single' | 'maybeSingle';
+
 class FakeQuery implements PromiseLike<Result> {
   constructor(
     private readonly rows: Row[],
-    private readonly one = false,
+    private readonly failure: string | null = null,
+    private readonly mode: Mode = 'many',
     private readonly sortKeys: SortKey[] = []
   ) {}
+
+  private with(rows: Row[], mode = this.mode, sortKeys = this.sortKeys) {
+    return new FakeQuery(rows, this.failure, mode, sortKeys);
+  }
 
   select() {
     return this;
   }
 
   eq(column: string, value: unknown) {
-    return new FakeQuery(this.rows.filter((row) => row[column] === value), this.one, this.sortKeys);
+    return this.with(this.rows.filter((row) => row[column] === value));
   }
 
   // Like Postgres, each later order call only breaks the ties the earlier ones left.
@@ -39,34 +46,45 @@ class FakeQuery implements PromiseLike<Result> {
       }
       return 0;
     });
-    return new FakeQuery(sorted, this.one, sortKeys);
+    return this.with(sorted, this.mode, sortKeys);
   }
 
   limit(count: number) {
-    return new FakeQuery(this.rows.slice(0, count), this.one, this.sortKeys);
+    return this.with(this.rows.slice(0, count));
   }
 
   single() {
-    return new FakeQuery(this.rows, true, this.sortKeys);
+    return this.with(this.rows, 'single');
+  }
+
+  maybeSingle() {
+    return this.with(this.rows, 'maybeSingle');
+  }
+
+  private result(): Result {
+    if (this.failure) return { data: null, error: { message: this.failure } };
+    const first = this.rows[0] ?? null;
+    if (this.mode === 'single') return { data: first, error: first ? null : { message: 'No rows' } };
+    if (this.mode === 'maybeSingle') return { data: first, error: null };
+    return { data: this.rows, error: null };
   }
 
   then<A = Result, B = never>(
     onFulfilled?: ((value: Result) => A | PromiseLike<A>) | null,
     onRejected?: ((reason: unknown) => B | PromiseLike<B>) | null
   ): PromiseLike<A | B> {
-    const result: Result = this.one
-      ? { data: this.rows[0] ?? null, error: this.rows[0] ? null : { message: 'No rows' } }
-      : { data: this.rows, error: null };
-    return Promise.resolve(result).then(onFulfilled, onRejected);
+    return Promise.resolve(this.result()).then(onFulfilled, onRejected);
   }
 }
 
-export function fakeSupabase(db: FakeDatabase) {
+// A table named in failingReads answers every select with an error, the way a dropped
+// connection or a denying policy would.
+export function fakeSupabase(db: FakeDatabase, failingReads: Set<string> = new Set()) {
   return {
     from: (table: string) => {
       const rows = (db[table] ??= []);
       return {
-        select: () => new FakeQuery(rows),
+        select: () => new FakeQuery(rows, failingReads.has(table) ? `Could not read ${table}` : null),
         insert: (row: Row) => {
           const saved = { id: `new-${rows.length}`, ...row };
           rows.push(saved);

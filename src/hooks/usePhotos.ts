@@ -122,14 +122,16 @@ export function useReorderPhotos(albumId: string) {
   });
 }
 
-// One above the album's highest display_order, or 0 for an empty album.
+// One above the album's highest display_order, or 0 for an empty album. Throws when
+// the read fails, so a batch never starts at 0 on top of the album's photos.
 export async function getNextPhotoOrder(albumId: string): Promise<number> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('photos')
     .select('display_order')
     .eq('album_id', albumId)
     .order('display_order', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
+  if (error) throw error;
   return (data?.display_order ?? -1) + 1;
 }
