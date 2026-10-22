@@ -17,10 +17,14 @@ export interface PhotoInput {
   height?: number;
 }
 
+// The caller picks displayOrder, so photos from one upload keep the order the owner added them in.
+export interface NewPhotoInput extends PhotoInput {
+  displayOrder: number;
+}
+
 export function useCreatePhoto() {
   return useMutation({
-    mutationFn: async (input: PhotoInput): Promise<Photo> => {
-      const nextOrder = await getNextPhotoOrder(input.albumId);
+    mutationFn: async (input: NewPhotoInput): Promise<Photo> => {
       const { data, error } = await supabase
         .from('photos')
         .insert({
@@ -31,7 +35,7 @@ export function useCreatePhoto() {
           public_id: input.publicId,
           width: input.width ?? null,
           height: input.height ?? null,
-          display_order: nextOrder,
+          display_order: input.displayOrder,
         })
         .select()
         .single();
@@ -118,7 +122,8 @@ export function useReorderPhotos(albumId: string) {
   });
 }
 
-async function getNextPhotoOrder(albumId: string): Promise<number> {
+// One above the album's highest display_order, or 0 for an empty album.
+export async function getNextPhotoOrder(albumId: string): Promise<number> {
   const { data } = await supabase
     .from('photos')
     .select('display_order')
