@@ -164,6 +164,12 @@ describe('AlbumPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('The note could not be saved. Try again.');
     expect(note).toHaveValue('New note');
+
+    writes.fail = false;
+    fireEvent.change(note, { target: { value: 'Newer note' } });
+    fireEvent.blur(note);
+    expect(await screen.findByText('Saved')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('puts a cleared title back to the saved one and sends no save', async () => {

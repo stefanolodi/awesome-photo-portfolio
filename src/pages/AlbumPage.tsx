@@ -24,6 +24,8 @@ import { setImageFallback } from '../lib/setImageFallback';
 import { stepPhotoId } from '../lib/stepPhotoId';
 import type { Photo } from '../types';
 
+const NOTE_SAVE_ERROR = 'The note could not be saved. Try again.';
+
 export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
@@ -87,9 +89,11 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
     try {
       await updatePhoto.mutateAsync({ id: photoId, albumId: album.id, ...changes });
       if (unsavedDrafts.current.get(photoId) === draft) unsavedDrafts.current.delete(photoId);
+      // A later save that works makes the failure banner wrong. Other banners stay.
+      setActionError((current) => (current === NOTE_SAVE_ERROR ? '' : current));
       return true;
     } catch {
-      setActionError('The note could not be saved. Try again.');
+      setActionError(NOTE_SAVE_ERROR);
       return false;
     }
   };
