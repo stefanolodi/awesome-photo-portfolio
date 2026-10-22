@@ -70,7 +70,7 @@ export function LoginPage() {
           </button>
         </form>
 
-        <Link to="/" className="login-back">← Back to gallery</Link>
+        <Link to="/" className="login-back">← Back to albums</Link>
       </div>
     </main>
   );
