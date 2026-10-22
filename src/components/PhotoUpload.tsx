@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useCreatePhoto } from '../hooks/usePhotos';
+import { getNextPhotoOrder, useCreatePhoto } from '../hooks/usePhotos';
 import { getUploadSignature, uploadToCloudinary } from '../lib/cloudinary';
 
 interface FileEntry {
@@ -76,17 +76,20 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
     setError('');
 
     let sig;
+    let firstOrder;
     try {
-      sig = await getUploadSignature(session.access_token);
+      [sig, firstOrder] = await Promise.all([getUploadSignature(session.access_token), getNextPhotoOrder(albumId)]);
     } catch {
       setError('The upload could not start. Try again.');
       setIsUploading(false);
       return;
     }
 
+    // Each file takes its display_order from its place in the grid before any upload
+    // starts, so the order the uploads finish in does not matter.
     const pending = files.filter((f) => f.status === 'pending');
     const results = await Promise.allSettled(
-      pending.map(async (entry) => {
+      pending.map(async (entry, index) => {
         updateFile(entry.id, { status: 'uploading' });
         const result = await uploadToCloudinary(entry.file, sig, (progress) => {
           updateFile(entry.id, { progress });
@@ -98,6 +101,7 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
           publicId: result.publicId,
           width: result.width,
           height: result.height,
+          displayOrder: firstOrder + index,
         });
         updateFile(entry.id, { status: 'done', progress: 100 });
       })

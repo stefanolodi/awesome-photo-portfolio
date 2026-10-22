@@ -27,7 +27,14 @@ export function useAlbum(id: string) {
     queryFn: async () => {
       const [albumRes, photosRes] = await Promise.all([
         supabase.from('albums').select('*').eq('id', id).single(),
-        supabase.from('photos').select('*').eq('album_id', id).order('display_order', { ascending: true }),
+        supabase
+          .from('photos')
+          .select('*')
+          .eq('album_id', id)
+          // created_at and id keep photos that share a display_order in the same order on every load.
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: true })
+          .order('id', { ascending: true }),
       ]);
       if (albumRes.error) throw albumRes.error;
       if (photosRes.error) throw photosRes.error;
