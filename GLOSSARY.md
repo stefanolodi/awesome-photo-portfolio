@@ -24,6 +24,10 @@ _Avoid_: Gallery, collection, set
 One image in an album, with a title and the owner's note.
 _Avoid_: Picture, image, asset
 
+**Photo order**:
+The order an album shows its photos in. New photos go at the end in the order the owner added them to the upload, and the owner can drag photos to change it.
+_Avoid_: Sort order, sequence
+
 **Cover**:
 The image an album shows on its card and in its opening hero. Cloudinary crops it around its subject to fit each frame.
 _Avoid_: Thumbnail, banner
