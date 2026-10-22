@@ -3,8 +3,6 @@ type Result = { data: unknown; error: { message: string } | null };
 
 export type FakeDatabase = Record<string, Row[]>;
 
-// Answers the query chains the hooks build, against rows the test owns. It ignores
-// row-level security, so it returns private rows to guests the way a broken policy would.
 type SortKey = { column: string; ascending: boolean };
 
 function compare(a: unknown, b: unknown): number {
