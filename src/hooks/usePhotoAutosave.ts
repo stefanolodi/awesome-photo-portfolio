@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Photo } from '../types';
 
 export type PhotoDraft = { title: string; note: string };
-export type SaveStatus = 'idle' | 'saving' | 'saved';
+type SaveStatus = 'idle' | 'saving' | 'saved';
+
+export function draftOf(photo: Photo): PhotoDraft {
+  return { title: photo.title, note: photo.note };
+}
 
 /** Resolves true when the save reached the database. */
 export type SavePhotoDraft = (draft: PhotoDraft, changes: Partial<PhotoDraft>) => Promise<boolean>;
@@ -21,7 +25,7 @@ export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: S
   const [draft, setDraft] = useState(initialDraft);
   const [status, setStatus] = useState<SaveStatus>('idle');
   const draftRef = useRef(initialDraft);
-  const savedRef = useRef<PhotoDraft>({ title: photo.title, note: photo.note });
+  const savedRef = useRef<PhotoDraft>(draftOf(photo));
   const saveRef = useRef(save);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const inFlightRef = useRef(false);
@@ -31,8 +35,8 @@ export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: S
     saveRef.current = save;
   });
 
-  // One save at a time, so an older response never lands after a newer one.
-  // An edit made while a save is in flight goes out once that save succeeds.
+  // One save at a time, so an older response never arrives after a newer one.
+  // An edit made while a save is pending is sent once that save finishes.
   const flush = useCallback(async () => {
     clearTimeout(timerRef.current);
     if (inFlightRef.current) {
@@ -62,7 +66,7 @@ export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: S
   }, []);
 
   // Closing the lightbox or moving to another photo unmounts the editor, so the
-  // pending edit goes out here.
+  // pending edit is sent here.
   useEffect(() => () => void flush(), [flush]);
 
   const setField = (field: keyof PhotoDraft, value: string) => {

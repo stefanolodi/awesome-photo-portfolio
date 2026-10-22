@@ -1,5 +1,5 @@
 import { setImageFallback } from '../lib/setImageFallback';
-import type { PhotoDraft } from '../hooks/usePhotoAutosave';
+import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
 import type { Photo } from '../types';
 
@@ -10,7 +10,7 @@ type PhotoLightboxProps = {
   onPrev: () => void;
   canEdit: boolean;
   draftFor: (photo: Photo) => PhotoDraft;
-  onSave: (photoId: string, draft: PhotoDraft, changes: Partial<PhotoDraft>) => Promise<boolean>;
+  onSave: (photoId: string, ...args: Parameters<SavePhotoDraft>) => ReturnType<SavePhotoDraft>;
 };
 
 export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {

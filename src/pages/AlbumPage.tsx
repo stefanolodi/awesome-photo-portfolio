@@ -14,7 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAlbum, useUpdateAlbum } from '../hooks/useAlbums';
 import { useReorderPhotos, useUpdatePhoto, useDeletePhoto } from '../hooks/usePhotos';
 import type { ThemeProps } from '../hooks/useTheme';
-import type { PhotoDraft } from '../hooks/usePhotoAutosave';
+import { draftOf, type PhotoDraft } from '../hooks/usePhotoAutosave';
 import { ActionError } from '../components/ActionError';
 import { AlbumForm } from '../components/AlbumForm';
 import { PhotoUpload } from '../components/PhotoUpload';
@@ -79,7 +79,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   };
 
   const draftFor = (photo: Photo): PhotoDraft =>
-    unsavedDrafts.current.get(photo.id) ?? { title: photo.title, note: photo.note };
+    unsavedDrafts.current.get(photo.id) ?? draftOf(photo);
 
   const savePhoto = async (photoId: string, draft: PhotoDraft, changes: Partial<PhotoDraft>) => {
     if (!album) return false;
