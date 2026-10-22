@@ -10,7 +10,7 @@ export function GallerySliderCard({ album, showPrivacy }: { album: Album; showPr
         <img alt={album.title} src={album.cover} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
         <div className="cover-overlay" />
         {showPrivacy && album.isPrivate && (
-          <span className="privacy-lock" aria-label="Private gallery" title="Private gallery">
+          <span className="privacy-lock" aria-label="Private album" title="Private album">
             <Lock size={14} strokeWidth={2} />
           </span>
         )}
@@ -18,7 +18,7 @@ export function GallerySliderCard({ album, showPrivacy }: { album: Album; showPr
       <div className="album-meta">
         <p>{new Date(album.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
         <h2>{album.title}</h2>
-        <span aria-hidden="true" className="click-indicator">View gallery</span>
+        <span aria-hidden="true" className="click-indicator">View album</span>
       </div>
     </Link>
   );

@@ -15,7 +15,7 @@ export function AlbumCard({ album, showPrivacy }: { album: Album; showPrivacy: b
         <img alt={album.title} src={album.cover} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
         <div className="cover-overlay" />
         {showPrivacy && album.isPrivate && (
-          <span className="privacy-lock" aria-label="Private gallery" title="Private gallery">
+          <span className="privacy-lock" aria-label="Private album" title="Private album">
             <Lock size={14} strokeWidth={2} />
           </span>
         )}
@@ -23,7 +23,7 @@ export function AlbumCard({ album, showPrivacy }: { album: Album; showPrivacy: b
       <div className="album-meta">
         <p>{new Date(album.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
         <h2>{album.title}</h2>
-        <Link className="view-link card-inline-link" to={`/album/${album.id}`}>View gallery</Link>
+        <Link className="view-link card-inline-link" to={`/album/${album.id}`}>View album</Link>
       </div>
     </article>
   );

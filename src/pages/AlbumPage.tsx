@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext,
@@ -14,15 +14,17 @@ import { useAuth } from '../hooks/useAuth';
 import { useAlbum, useUpdateAlbum } from '../hooks/useAlbums';
 import { useReorderPhotos, useUpdatePhoto, useDeletePhoto } from '../hooks/usePhotos';
 import type { ThemeProps } from '../hooks/useTheme';
+import { draftOf, type PhotoDraft } from '../hooks/usePhotoAutosave';
 import { ActionError } from '../components/ActionError';
 import { AlbumForm } from '../components/AlbumForm';
 import { PhotoUpload } from '../components/PhotoUpload';
-import { PhotoEditModal } from '../components/PhotoEditModal';
 import { PhotoLightbox } from '../components/PhotoLightbox';
 import { PhotoTile } from '../components/PhotoTile';
 import { setImageFallback } from '../lib/setImageFallback';
 import { stepPhotoId } from '../lib/stepPhotoId';
 import type { Photo } from '../types';
+
+const NOTE_SAVE_ERROR = 'The note could not be saved. Try again.';
 
 export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const { albumId } = useParams<{ albumId: string }>();
@@ -38,8 +40,9 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [showEditAlbum, setShowEditAlbum] = useState(false);
-  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [actionError, setActionError] = useState('');
+  // Drafts whose last save failed, so reopening the photo shows the owner's text again.
+  const unsavedDrafts = useRef(new Map<string, PhotoDraft>());
 
   const photos = useMemo(() => album?.photos ?? [], [album]);
   const selectedPhoto = photos.find((p) => p.id === selectedPhotoId) ?? null;
@@ -51,6 +54,8 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   useEffect(() => {
     if (!selectedPhotoId) return;
     const onKeyDown = (event: KeyboardEvent) => {
+      // In the title or note field, arrows move the text cursor and Escape only leaves the field.
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
       if (event.key === 'Escape') setSelectedPhotoId(null);
       if (event.key === 'ArrowRight') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'next'));
       if (event.key === 'ArrowLeft') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'prev'));
@@ -75,11 +80,22 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
     });
   };
 
-  const handleNoteChange = (photoId: string, note: string) => {
-    if (!album) return;
-    updatePhoto.mutate({ id: photoId, albumId: album.id, note }, {
-      onError: () => setActionError('The note could not be saved. Try again.'),
-    });
+  const draftFor = (photo: Photo): PhotoDraft =>
+    unsavedDrafts.current.get(photo.id) ?? draftOf(photo);
+
+  const savePhoto = async (photoId: string, draft: PhotoDraft, changes: Partial<PhotoDraft>) => {
+    if (!album) return false;
+    unsavedDrafts.current.set(photoId, draft);
+    try {
+      await updatePhoto.mutateAsync({ id: photoId, albumId: album.id, ...changes });
+      if (unsavedDrafts.current.get(photoId) === draft) unsavedDrafts.current.delete(photoId);
+      // A later save that works makes the failure banner wrong. Other banners stay.
+      setActionError((current) => (current === NOTE_SAVE_ERROR ? '' : current));
+      return true;
+    } catch {
+      setActionError(NOTE_SAVE_ERROR);
+      return false;
+    }
   };
 
   const deleteAlbumPhoto = (photo: Photo) => {
@@ -120,8 +136,8 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
         />
         <button className="back-link" type="button" onClick={() => void navigate('/')}>Back to albums</button>
         <section className="gallery-wrap">
-          <h1>Private gallery</h1>
-          <p>This gallery is only visible to the owner.</p>
+          <h1>Private album</h1>
+          <p>This album is only visible to the owner.</p>
         </section>
       </main>
     );
@@ -146,7 +162,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           <p>{album.description}</p>
           {isOwner && (
             <button className="privacy-toggle" onClick={toggleAlbumPrivacy} type="button">
-              {album.isPrivate ? 'Private gallery' : 'Public gallery'}
+              {album.isPrivate ? 'Private album' : 'Public album'}
             </button>
           )}
         </div>
@@ -211,17 +227,14 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           onClose={() => setSelectedPhotoId(null)}
           onNext={() => moveSelection('next')}
           onPrev={() => moveSelection('prev')}
-          onNoteChange={handleNoteChange}
           canEdit={isOwner}
-          onEditPhoto={isOwner ? () => setEditingPhoto(selectedPhoto) : undefined}
+          draftFor={draftFor}
+          onSave={savePhoto}
         />
       )}
 
       {showUpload && <PhotoUpload albumId={album.id} onDone={() => setShowUpload(false)} onClose={() => setShowUpload(false)} />}
       {showEditAlbum && <AlbumForm album={album} onClose={() => setShowEditAlbum(false)} />}
-      {editingPhoto && album && (
-        <PhotoEditModal photo={editingPhoto} albumId={album.id} onClose={() => setEditingPhoto(null)} />
-      )}
     </main>
   );
 }

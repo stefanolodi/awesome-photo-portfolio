@@ -1,4 +1,6 @@
 import { setImageFallback } from '../lib/setImageFallback';
+import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
+import { PhotoDetailsEditor } from './PhotoDetailsEditor';
 import type { Photo } from '../types';
 
 type PhotoLightboxProps = {
@@ -6,12 +8,12 @@ type PhotoLightboxProps = {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
-  onNoteChange: (photoId: string, note: string) => void;
   canEdit: boolean;
-  onEditPhoto?: () => void;
+  draftFor: (photo: Photo) => PhotoDraft;
+  onSave: (photoId: string, ...args: Parameters<SavePhotoDraft>) => ReturnType<SavePhotoDraft>;
 };
 
-export function PhotoLightbox({ photo, onClose, onNext, onPrev, onNoteChange, canEdit, onEditPhoto }: PhotoLightboxProps) {
+export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
   return (
     <section className="photo-lightbox" role="dialog" aria-modal="true" aria-label={`Photo detail ${photo.title}`}>
       <div className="lightbox-backdrop" onClick={onClose} />
@@ -25,25 +27,21 @@ export function PhotoLightbox({ photo, onClose, onNext, onPrev, onNoteChange, ca
         </div>
         <aside className="lightbox-note-panel">
           <button className="nav-item close-lightbox" type="button" onClick={onClose}>Close</button>
-          <p className="owner-badge">{canEdit ? 'Gallery note' : 'Photo note'}</p>
-          <h2>{photo.title}</h2>
-          <p>{canEdit ? 'This note is visible to viewers when this gallery is public.' : 'Shared note from the gallery owner.'}</p>
+          <p className="owner-badge">Note</p>
           {canEdit ? (
-            <>
-              <textarea
-                value={photo.note}
-                onChange={(e) => onNoteChange(photo.id, e.target.value)}
-                placeholder="Write a note for viewers and yourself…"
-                rows={8}
-              />
-              {onEditPhoto && (
-                <button type="button" className="btn-ghost" style={{ marginTop: '0.75rem', width: '100%' }} onClick={onEditPhoto}>
-                  Edit title &amp; note
-                </button>
-              )}
-            </>
+            // The key gives each photo its own editor, whose unmount saves the pending edit.
+            <PhotoDetailsEditor
+              key={photo.id}
+              photo={photo}
+              initialDraft={draftFor(photo)}
+              onSave={(draft, changes) => onSave(photo.id, draft, changes)}
+            />
           ) : (
-            <div className="public-note">{photo.note.trim() || 'No note added for this photo yet.'}</div>
+            <>
+              <h2>{photo.title}</h2>
+              <p>A note from the owner.</p>
+              <div className="public-note">{photo.note.trim() || 'No note added for this photo yet.'}</div>
+            </>
           )}
         </aside>
       </div>

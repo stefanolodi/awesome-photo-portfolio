@@ -1,28 +1,11 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
 import { deleteCloudinaryAsset } from '../lib/cloudinary';
 import type { Album, Photo } from '../types';
 
-const photosKey = (albumId: string) => ['photos', albumId] as const;
 const albumKey = (id: string) => ['album', id] as const;
-
-export function usePhotos(albumId: string) {
-  return useQuery({
-    queryKey: photosKey(albumId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .eq('album_id', albumId)
-        .order('display_order', { ascending: true });
-      if (error) throw error;
-      return data.map(mapPhoto);
-    },
-    enabled: !!albumId,
-  });
-}
 
 export interface PhotoInput {
   albumId: string;
@@ -56,15 +39,16 @@ export function useCreatePhoto() {
       return mapPhoto(data);
     },
     onSuccess: (_photo, variables) => {
-      void queryClient.invalidateQueries({ queryKey: photosKey(variables.albumId) });
       void queryClient.invalidateQueries({ queryKey: albumKey(variables.albumId) });
     },
   });
 }
 
 export function useUpdatePhoto() {
+  // The provider's client, so a test's own client sees the saved photo too.
+  const client = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, albumId, ...input }: Partial<Omit<PhotoInput, 'albumId'>> & { id: string; albumId: string }): Promise<Photo> => {
+    mutationFn: async ({ id, ...input }: Partial<Omit<PhotoInput, 'albumId'>> & { id: string; albumId: string }): Promise<Photo> => {
       const { data, error } = await supabase
         .from('photos')
         .update({
@@ -75,11 +59,12 @@ export function useUpdatePhoto() {
         .select()
         .single();
       if (error) throw error;
-      const photo = mapPhoto(data);
-      queryClient.setQueryData<Photo[]>(photosKey(albumId), (old) =>
-        old ? old.map((p) => (p.id === id ? photo : p)) : old
+      return mapPhoto(data);
+    },
+    onSuccess: (photo, { albumId }) => {
+      client.setQueryData<Album>(albumKey(albumId), (old) =>
+        old ? { ...old, photos: old.photos.map((p) => (p.id === photo.id ? photo : p)) } : old
       );
-      return photo;
     },
   });
 }
@@ -96,7 +81,6 @@ export function useDeletePhoto() {
       return { albumId };
     },
     onSuccess: (_data, { albumId }) => {
-      void queryClient.invalidateQueries({ queryKey: photosKey(albumId) });
       void queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
     },
   });

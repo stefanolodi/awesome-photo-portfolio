@@ -77,7 +77,7 @@ describe('Rule 1: a guest never sees a private album or its photos', () => {
 
   it('blocks the private album at its own url', async () => {
     renderWithProviders(<App />, { path: '/album/private-album' });
-    expect(await screen.findByRole('heading', { name: 'Private gallery' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Private album' })).toBeInTheDocument();
     expect(screen.queryByText('Secret party')).not.toBeInTheDocument();
     expect(screen.queryByAltText('Secret party')).not.toBeInTheDocument();
     expect(screen.queryByAltText('Secret photo')).not.toBeInTheDocument();
@@ -106,7 +106,7 @@ describe('Rule 3: only the owner sees the controls that create, edit, reorder or
   it('gives a guest no photo or album controls on an album page', async () => {
     const { container } = renderWithProviders(<App />, { path: '/album/public-album' });
     await openLightbox();
-    for (const name of [/upload photos/i, /edit album/i, /public gallery/i, /delete photo/i, /edit title/i]) {
+    for (const name of [/upload photos/i, /edit album/i, /public album/i, /delete photo/i]) {
       expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     }
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -116,10 +116,11 @@ describe('Rule 3: only the owner sees the controls that create, edit, reorder or
   it('gives the owner photo and album controls on an album page', async () => {
     const { container } = renderWithProviders(<App />, { path: '/album/public-album', isOwner: true });
     await openLightbox();
-    for (const name of [/upload photos/i, /edit album/i, /public gallery/i, /delete photo/i, /edit title/i]) {
+    for (const name of [/upload photos/i, /edit album/i, /public album/i, /delete photo/i]) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Title' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Note' })).toBeInTheDocument();
     expect(sortables(container)).toHaveLength(1);
   });
 });
