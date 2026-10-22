@@ -18,6 +18,7 @@ import { AlbumForm } from '../components/AlbumForm';
 import { AlbumCard } from '../components/AlbumCard';
 import { GallerySliderCard } from '../components/GallerySliderCard';
 import { OwnerSessionButton } from '../components/OwnerSessionButton';
+import { HeroCover } from '../components/HeroCover';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { Album } from '../types';
 
@@ -136,7 +137,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
 
       {featuredAlbum && (
         <section className="opening-hero fade-in-up">
-          <img alt={featuredAlbum.title} src={featuredAlbum.cover} onError={(e) => setImageFallback(e, featuredAlbum.title)} />
+          <HeroCover cover={featuredAlbum.cover} title={featuredAlbum.title} />
           <div className="hero-layer" />
           <div className="hero-copy">
             <p className="eyebrow">Private Photo Archive</p>
