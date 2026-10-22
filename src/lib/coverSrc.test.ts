@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { coverSrc } from './coverSrc';
+import { describe, expect, it, vi } from 'vitest';
+import { coverSrc, type CoverCrop } from './coverSrc';
 
-const square = { aspectRatio: '1:1', width: 800 };
+vi.mock('./supabase', () => ({ supabase: {} }));
+
+const square: CoverCrop = { aspectRatio: '1:1', width: 800 };
 
 describe('coverSrc', () => {
   it('asks Cloudinary for a subject-aware crop of a cover with a version segment', () => {
