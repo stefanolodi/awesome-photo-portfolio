@@ -1,4 +1,4 @@
-export type CoverCrop = { aspectRatio: string; width: number };
+export type CoverCrop = { aspectRatio: `${number}:${number}`; width: number };
 
 const cloudinaryUpload = /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\//;
 
