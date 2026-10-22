@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { photoAspectRatio } from '../lib/photoAspectRatio';
+import { photoAspectRatio, type Size } from '../lib/photoAspectRatio';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
@@ -15,7 +15,7 @@ type PhotoLightboxProps = {
   onSave: (photoId: string, ...args: Parameters<SavePhotoDraft>) => ReturnType<SavePhotoDraft>;
 };
 
-type NaturalSize = { photoId: string; width: number; height: number };
+type NaturalSize = Required<Size> & { photoId: string };
 
 export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
   // Keyed by photo id, so the natural size of the previous photo never sets the ratio of the next one.

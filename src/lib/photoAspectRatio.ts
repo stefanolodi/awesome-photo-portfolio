@@ -1,6 +1,6 @@
 import type { Photo } from '../types';
 
-type Size = { width?: number; height?: number };
+export type Size = { width?: number; height?: number };
 
 function ratioOf({ width, height }: Size): number | undefined {
   if (!width || !height || width <= 0 || height <= 0) return undefined;
