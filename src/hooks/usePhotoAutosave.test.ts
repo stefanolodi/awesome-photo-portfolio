@@ -41,7 +41,7 @@ describe('usePhotoAutosave', () => {
     act(() => { vi.advanceTimersByTime(799); });
     expect(save).not.toHaveBeenCalled();
 
-    await act(async () => { vi.advanceTimersByTime(1); });
+    await act(() => vi.advanceTimersByTimeAsync(1));
     expect(calls.map((c) => c.changes)).toEqual([{ note: 'ab' }]);
     expect(result.current.status).toBe('saving');
 
@@ -97,7 +97,7 @@ describe('usePhotoAutosave', () => {
 
     act(() => result.current.editTitle(' '));
     act(() => result.current.editNote('New note'));
-    await act(async () => { vi.advanceTimersByTime(800); });
+    await act(() => vi.advanceTimersByTimeAsync(800));
 
     expect(calls[0].draft).toEqual({ title: 'Beach', note: 'New note' });
     expect(calls[0].changes).toEqual({ note: 'New note' });
