@@ -24,6 +24,10 @@ _Avoid_: Gallery, collection, set
 One image in an album, with a title and the owner's note.
 _Avoid_: Picture, image, asset
 
+**Cover**:
+The image an album shows on its card and in its opening hero. Cloudinary crops it around its subject to fit each frame.
+_Avoid_: Thumbnail, banner
+
 **Note**:
 The owner's text about one photo. Guests can read it, and only the owner writes it.
 _Avoid_: Caption, comment, description

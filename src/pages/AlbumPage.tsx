@@ -20,6 +20,7 @@ import { AlbumForm } from '../components/AlbumForm';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoLightbox } from '../components/PhotoLightbox';
 import { PhotoTile } from '../components/PhotoTile';
+import { HeroCover } from '../components/HeroCover';
 import { setImageFallback } from '../lib/setImageFallback';
 import { stepPhotoId } from '../lib/stepPhotoId';
 import type { Photo } from '../types';
@@ -154,7 +155,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
       <ActionError message={actionError} onDismiss={() => setActionError('')} />
 
       <section className="album-hero opening-hero fade-in-up">
-        <img alt={album.title} src={album.cover} onError={(e) => setImageFallback(e, album.title)} />
+        <HeroCover cover={album.cover} title={album.title} />
         <div className="hero-layer" />
         <div className="hero-copy">
           <p>{new Date(album.eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>

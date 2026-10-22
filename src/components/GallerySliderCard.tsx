@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import { coverCrops } from '../lib/coverCrops';
+import { coverSrc } from '../lib/coverSrc';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { Album } from '../types';
 
@@ -7,7 +9,7 @@ export function GallerySliderCard({ album, showPrivacy }: { album: Album; showPr
   return (
     <Link className="album-card album-card-link" to={`/album/${album.id}`}>
       <div className="cover-frame">
-        <img alt={album.title} src={album.cover} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
+        <img alt={album.title} src={coverSrc(album.cover, coverCrops.card)} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
         <div className="cover-overlay" />
         {showPrivacy && album.isPrivate && (
           <span className="privacy-lock" aria-label="Private album" title="Private album">
