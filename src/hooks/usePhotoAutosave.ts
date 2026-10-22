@@ -21,6 +21,11 @@ function changesToSave(draft: PhotoDraft, saved: PhotoDraft): Partial<PhotoDraft
   return Object.keys(changes).length > 0 ? changes : null;
 }
 
+// A blank title is never stored, so a draft kept after a failed save reopens with the saved title.
+function withSavedTitleIfBlank(draft: PhotoDraft, saved: PhotoDraft): PhotoDraft {
+  return draft.title.trim() ? draft : { ...draft, title: saved.title };
+}
+
 export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: SavePhotoDraft) {
   const [draft, setDraft] = useState(initialDraft);
   const [status, setStatus] = useState<SaveStatus>('idle');
@@ -36,7 +41,8 @@ export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: S
   });
 
   // One save at a time, so an older response never arrives after a newer one.
-  // An edit made while a save is pending is sent once that save finishes.
+  // An edit made while a save is pending is sent once that save finishes, even when
+  // that save failed, so the caller always holds the owner's latest text.
   const flush = useCallback(async () => {
     clearTimeout(timerRef.current);
     if (inFlightRef.current) {
@@ -47,14 +53,15 @@ export function usePhotoAutosave(photo: Photo, initialDraft: PhotoDraft, save: S
     try {
       for (;;) {
         queuedRef.current = false;
-        const current = draftRef.current;
+        const current = withSavedTitleIfBlank(draftRef.current, savedRef.current);
         const changes = changesToSave(current, savedRef.current);
         if (!changes) break;
         setStatus('saving');
         const ok = await saveRef.current(current, changes);
         if (!ok) {
           setStatus('idle');
-          break;
+          if (!queuedRef.current) break;
+          continue;
         }
         savedRef.current = { ...savedRef.current, ...changes };
         setStatus('saved');
