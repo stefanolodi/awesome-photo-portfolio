@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Lock } from 'lucide-react';
+import { coverCrops } from '../lib/coverCrops';
+import { coverSrc } from '../lib/coverSrc';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { Album } from '../types';
 
@@ -12,7 +14,7 @@ export function AlbumCard({ album, showPrivacy }: { album: Album; showPrivacy: b
   return (
     <article className="album-card" ref={setNodeRef} style={style}>
       <div className="cover-frame" {...attributes} {...listeners}>
-        <img alt={album.title} src={album.cover} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
+        <img alt={album.title} src={coverSrc(album.cover, coverCrops.card)} loading="lazy" onError={(e) => setImageFallback(e, album.title)} />
         <div className="cover-overlay" />
         {showPrivacy && album.isPrivate && (
           <span className="privacy-lock" aria-label="Private album" title="Private album">
