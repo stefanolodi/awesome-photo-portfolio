@@ -1,3 +1,5 @@
+import { useState, type CSSProperties } from 'react';
+import { photoAspectRatio, type Size } from '../lib/photoAspectRatio';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
@@ -13,13 +15,31 @@ type PhotoLightboxProps = {
   onSave: (photoId: string, ...args: Parameters<SavePhotoDraft>) => ReturnType<SavePhotoDraft>;
 };
 
+type NaturalSize = Required<Size> & { photoId: string };
+
 export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
+  // The state stores the photo id with the natural size, so the natural size of the previous photo never sets the ratio of the next one.
+  const [naturalSize, setNaturalSize] = useState<NaturalSize | null>(null);
+  const ratio = photoAspectRatio(photo, naturalSize?.photoId === photo.id ? naturalSize : undefined);
+  const mediaStyle = ratio === undefined ? undefined : ({ '--photo-ratio': ratio } as CSSProperties);
+
   return (
     <section className="photo-lightbox" role="dialog" aria-modal="true" aria-label={`Photo detail ${photo.title}`}>
       <div className="lightbox-backdrop" onClick={onClose} />
       <div className="lightbox-card">
-        <div className="lightbox-media">
-          <img alt={photo.title} src={photo.src} onError={(e) => setImageFallback(e, photo.title)} />
+        <div className="lightbox-media" style={mediaStyle}>
+          <img
+            alt={photo.title}
+            src={photo.src}
+            onLoad={(e) =>
+              setNaturalSize({
+                photoId: photo.id,
+                width: e.currentTarget.naturalWidth,
+                height: e.currentTarget.naturalHeight,
+              })
+            }
+            onError={(e) => setImageFallback(e, photo.title)}
+          />
           <div className="lightbox-actions">
             <button className="nav-item" type="button" onClick={onPrev}>Previous</button>
             <button className="nav-item" type="button" onClick={onNext}>Next</button>

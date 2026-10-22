@@ -36,6 +36,14 @@ _Avoid_: Hidden album, draft
 An album guests can see, once they are past the gate.
 _Avoid_: Shared album, published album
 
+**Portrait photo**:
+A photo taller than it is wide.
+_Avoid_: Vertical photo
+
+**Landscape photo**:
+A photo wider than it is tall.
+_Avoid_: Horizontal photo
+
 ### Access
 
 **Gate**:
