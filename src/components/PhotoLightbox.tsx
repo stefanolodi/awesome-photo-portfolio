@@ -18,7 +18,7 @@ type PhotoLightboxProps = {
 type NaturalSize = Required<Size> & { photoId: string };
 
 export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
-  // Keyed by photo id, so the natural size of the previous photo never sets the ratio of the next one.
+  // The state stores the photo id with the natural size, so the natural size of the previous photo never sets the ratio of the next one.
   const [naturalSize, setNaturalSize] = useState<NaturalSize | null>(null);
   const ratio = photoAspectRatio(photo, naturalSize?.photoId === photo.id ? naturalSize : undefined);
   const mediaStyle = ratio === undefined ? undefined : ({ '--photo-ratio': ratio } as CSSProperties);
