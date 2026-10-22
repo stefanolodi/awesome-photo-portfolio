@@ -8,7 +8,6 @@ function ratioOf({ width, height }: Size): number | undefined {
   return Number.isFinite(ratio) ? ratio : undefined;
 }
 
-/** Width over height, from the photo's stored size, else from the loaded image's natural size. */
 export function photoAspectRatio(photo: Photo, naturalSize?: Size): number | undefined {
   return ratioOf(photo) ?? (naturalSize ? ratioOf(naturalSize) : undefined);
 }
