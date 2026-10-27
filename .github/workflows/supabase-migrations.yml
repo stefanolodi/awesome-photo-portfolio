@@ -1,0 +1,39 @@
+name: Supabase migrations
+
+# A pull request dry-runs its migrations against the live project, and a push to main applies
+# them. Agents never push to the live database themselves. See ADR 0004.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: ['supabase/migrations/**']
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**']
+
+permissions:
+  contents: read
+
+# Never cancel a run, because a push cancelled halfway leaves the live schema half-migrated.
+concurrency:
+  group: supabase-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrations:
+    name: Supabase migrations
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v7
+      # The CLI version that wrote the baseline migration.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.90.0
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - if: github.event_name == 'pull_request'
+        run: supabase db push --dry-run
+      - if: github.event_name == 'push'
+        run: supabase db push --yes

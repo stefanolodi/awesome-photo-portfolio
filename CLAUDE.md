@@ -46,6 +46,9 @@ api/
   sign-cloudinary-upload.ts
   delete-cloudinary-asset.ts
   _lib/authorizeOwner.ts
+supabase/
+  config.toml      # Local stack settings for the Supabase CLI
+  migrations/      # The schema. CI applies new files on merge to main
 ```
 
 ### Routing
@@ -68,6 +71,9 @@ The owner sees private albums, creates and edits albums, switches an album betwe
 
 - Client: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_OWNER_USER_ID`, `VITE_GUEST_PASSWORD`.
 - Functions in `api/`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `OWNER_USER_ID`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_CLOUD_NAME` (falls back to `VITE_CLOUDINARY_CLOUD_NAME`).
+- Supabase CLI, for `supabase link` and `supabase db pull` on the owner's Mac: `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`. GitHub Actions reads them, and `SUPABASE_ACCESS_TOKEN`, from repo secrets.
+
+`.env.example` lists every variable with a comment saying what it is.
 
 ## Dev commands
 
@@ -133,6 +139,10 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ### Coding standards
 
 How code is written here, the commands for install and verify, and the definition of done. See `docs/agents/coding-standards.md`.
+
+### Database schema
+
+Every schema change is a new migration in `supabase/migrations/`, and only CI pushes it to the live database. See "Database schema" in `docs/agents/coding-standards.md` and ADR 0004.
 
 ### Git workflow
 
