@@ -20,6 +20,10 @@ _Avoid_: Visitor, viewer, public user
 A titled set of photos from one event, with a cover, a date and a description.
 _Avoid_: Gallery, collection, set
 
+**Featured album**:
+The album the owner picks to open the home page. At most one album is featured.
+_Avoid_: Hero album, pinned album, highlighted album
+
 **Photo**:
 One image in an album, with a title and the owner's note.
 _Avoid_: Picture, image, asset
