@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash2 } from 'lucide-react';
-import { setImageFallback } from '../lib/setImageFallback';
+import { photoSizes } from '../lib/photoSizes';
+import { PhotoGridImage } from './PhotoGridImage';
 import type { Photo } from '../types';
 
 type PhotoTileProps = { photo: Photo; isActive: boolean; onSelect: () => void; onDelete?: () => void };
@@ -26,7 +27,7 @@ export function PhotoTile({ photo, isActive, onSelect, onDelete }: PhotoTileProp
         {...attributes}
         {...listeners}
       >
-        <img alt={photo.title} src={photo.src} loading="lazy" onError={(e) => setImageFallback(e, photo.title)} />
+        <PhotoGridImage photo={photo} grid={photoSizes.masonry} />
       </button>
 
       {onDelete && (

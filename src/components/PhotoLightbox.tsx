@@ -1,5 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { photoAspectRatio, type Size } from '../lib/photoAspectRatio';
+import { photoSizes } from '../lib/photoSizes';
+import { photoSrc } from '../lib/photoSrc';
 import { setImageFallback } from '../lib/setImageFallback';
 import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
@@ -30,7 +32,7 @@ export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFo
         <div className="lightbox-media" style={mediaStyle}>
           <img
             alt={photo.title}
-            src={photo.src}
+            src={photoSrc(photo.src, photoSizes.lightbox)}
             onLoad={(e) =>
               setNaturalSize({
                 photoId: photo.id,

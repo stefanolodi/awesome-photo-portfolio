@@ -19,7 +19,8 @@ import { AlbumCard } from '../components/AlbumCard';
 import { GallerySliderCard } from '../components/GallerySliderCard';
 import { OwnerSessionButton } from '../components/OwnerSessionButton';
 import { HeroCover } from '../components/HeroCover';
-import { setImageFallback } from '../lib/setImageFallback';
+import { PhotoGridImage } from '../components/PhotoGridImage';
+import { photoSizes } from '../lib/photoSizes';
 import type { Album } from '../types';
 
 type HomeView = 'galleries' | 'photos' | number;
@@ -190,7 +191,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
             <div className="photo-feed">
               {allPhotos.map(({ photo, album, index }) => (
                 <article className="photo-feed-item" key={`${album.id}-${photo.id}-${index}`}>
-                  <img alt={photo.title} src={photo.src} loading="lazy" onError={(e) => setImageFallback(e, photo.title)} />
+                  <PhotoGridImage photo={photo} grid={photoSizes.feed} />
                 </article>
               ))}
             </div>

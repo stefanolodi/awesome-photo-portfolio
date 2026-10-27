@@ -21,7 +21,8 @@ import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoLightbox } from '../components/PhotoLightbox';
 import { PhotoTile } from '../components/PhotoTile';
 import { HeroCover } from '../components/HeroCover';
-import { setImageFallback } from '../lib/setImageFallback';
+import { PhotoGridImage } from '../components/PhotoGridImage';
+import { photoSizes } from '../lib/photoSizes';
 import { stepPhotoId } from '../lib/stepPhotoId';
 import type { Photo } from '../types';
 
@@ -195,7 +196,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
                 className={selectedPhoto?.id === photo.id ? 'photo-tile is-active' : 'photo-tile'}
                 onClick={() => setSelectedPhotoId(photo.id)}
               >
-                <img alt={photo.title} src={photo.src} loading="lazy" onError={(e) => setImageFallback(e, photo.title)} />
+                <PhotoGridImage photo={photo} grid={photoSizes.masonry} />
               </button>
             ))}
           </div>
