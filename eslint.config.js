@@ -14,6 +14,8 @@ const typeChecked = {
 
 // ADR 0003. Findings that predate the linter live in eslint-suppressions.json.
 export default defineConfig(
+  // The Supabase CLI writes this file, so a hand fix would vanish on the next run. See ADR 0004.
+  { ignores: ['src/lib/database.types.ts'] },
   {
     files: ['src/**/*.{ts,tsx}'],
     extends: [

@@ -21,7 +21,8 @@ export function mapAlbum(row: AlbumRow, photos: Photo[] = []): Album {
   return {
     id: row.id,
     isPrivate: row.is_private,
-    year: row.year,
+    // year is a generated column with no NOT NULL, so its type allows null even though event_date never is.
+    year: row.year ?? Number(row.event_date.slice(0, 4)),
     title: row.title,
     eventDate: row.event_date,
     cover: row.cover_url,

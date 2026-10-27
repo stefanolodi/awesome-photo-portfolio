@@ -29,6 +29,14 @@ Words in these rules are defined in `GLOSSARY.md`.
 4. The guest UI has no download control and no link to the original file. See "Key rules" in `CLAUDE.md` and ADR 0001.
 5. The gate covers every page except `/login`, and the owner skips it. See ADR 0001.
 
+## Database schema
+
+- The schema lives in `supabase/migrations/`, and `.github/workflows/supabase-migrations.yml` applies it to the live project on merge to `main`. See ADR 0004.
+- Every schema change is a new file from `supabase migration new <name>`. Never edit a migration that has already been applied.
+- A migration only adds things, such as a column with a default or a new function. Vercel and the Action deploy separately, so for a short time the old client runs against the new schema, or the new client against the old one. See ADR 0004.
+- After a migration, regenerate the types locally with `supabase start && supabase db reset && supabase gen types typescript --local > src/lib/database.types.ts`.
+- Never run `supabase db push` or `supabase migration repair` outside CI.
+
 ## Testing
 
 - Tests run on vitest with jsdom and Testing Library. `npm run test` runs them all once.
