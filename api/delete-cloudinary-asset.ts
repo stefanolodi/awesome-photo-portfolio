@@ -8,6 +8,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Cloudinary's Admin API takes at most 100 public ids per delete_resources call.
+const DELETE_BATCH_SIZE = 100;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -18,13 +21,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(denied.status).json({ error: denied.error });
   }
 
-  const { publicId } = req.body as { publicId?: string };
-  if (!publicId) {
-    return res.status(400).json({ error: 'publicId is required' });
+  const { publicIds } = req.body as { publicIds?: unknown };
+  if (!Array.isArray(publicIds) || publicIds.length === 0 || !publicIds.every((id) => typeof id === 'string')) {
+    return res.status(400).json({ error: 'publicIds must be a non-empty array of strings' });
   }
 
   try {
-    await cloudinary.uploader.destroy(publicId);
+    for (let start = 0; start < publicIds.length; start += DELETE_BATCH_SIZE) {
+      await cloudinary.api.delete_resources(publicIds.slice(start, start + DELETE_BATCH_SIZE));
+    }
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Cloudinary delete error:', err);

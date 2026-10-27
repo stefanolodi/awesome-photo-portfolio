@@ -1,9 +1,10 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 import { AlbumForm } from './AlbumForm';
 import type { FakeDatabase } from '../test/fakeSupabase';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { supabase } from '../lib/supabase';
-import { mapAlbum } from '../lib/mappers';
+import { mapAlbum, mapPhoto } from '../lib/mappers';
 
 const db = vi.hoisted((): FakeDatabase => ({}));
 
@@ -11,6 +12,11 @@ vi.mock('../lib/supabase', async () => {
   const { fakeSupabase } = await import('../test/fakeSupabase');
   return { supabase: fakeSupabase(db) };
 });
+
+vi.mock('../lib/cloudinary', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/cloudinary')>()),
+  deleteCloudinaryAssets: vi.fn(() => Promise.resolve()),
+}));
 
 beforeEach(() => {
   db.albums = [];
@@ -123,5 +129,85 @@ describe('the featured album toggle', () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(db.albums.filter((row) => row.is_featured).map((row) => row.id)).toEqual(['b']);
+  });
+});
+
+describe('deleting an album', () => {
+  const photoRow = (id: string) => ({ id, album_id: 'a', title: id, note: '', url: '', public_id: id, width: null, height: null, display_order: 0, created_at: '', updated_at: '' });
+
+  const renderEditForm = (onClose = vi.fn()) => {
+    const row = albumRow('a', false);
+    db.albums = [row];
+    const photos = [photoRow('p1'), photoRow('p2')];
+    db.photos = [...photos];
+    const album = mapAlbum(row, photos.map(mapPhoto));
+    renderWithProviders(
+      <Routes>
+        <Route path="/album/a" element={<AlbumForm album={album} onClose={onClose} />} />
+        <Route path="/" element={<p>Home page</p>} />
+      </Routes>,
+      { path: '/album/a', isOwner: true }
+    );
+    return { onClose };
+  };
+
+  it('offers Delete album when the owner edits an album', () => {
+    renderEditForm();
+    expect(screen.getByRole('button', { name: 'Delete album' })).toBeInTheDocument();
+  });
+
+  it('offers no Delete album for a new album', () => {
+    renderWithProviders(<AlbumForm onClose={() => {}} />, { isOwner: true });
+    expect(screen.queryByRole('button', { name: 'Delete album' })).not.toBeInTheDocument();
+  });
+
+  it('asks first, names the photo count, and moves focus to Cancel delete', () => {
+    const rpc = vi.spyOn(supabase, 'rpc');
+    renderEditForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete album' }));
+
+    expect(screen.getByText('Delete this album and its 2 photos?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel delete' })).toHaveFocus();
+    expect(rpc).not.toHaveBeenCalled();
+    expect(db.albums).toHaveLength(1);
+  });
+
+  it('deletes nothing when the owner cancels with the button or Escape', () => {
+    const rpc = vi.spyOn(supabase, 'rpc');
+    renderEditForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete album' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel delete' }));
+    expect(screen.getByRole('button', { name: 'Delete album' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete album' }));
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Cancel delete' }), { key: 'Escape' });
+    expect(screen.queryByText(/Delete this album/)).not.toBeInTheDocument();
+
+    expect(rpc).not.toHaveBeenCalled();
+    expect(db.albums).toHaveLength(1);
+  });
+
+  it('closes the form and goes home after a confirmed delete', async () => {
+    const { onClose } = renderEditForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete album' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText('Home page')).toBeInTheDocument();
+    expect(onClose).toHaveBeenCalled();
+    expect(db.albums).toEqual([]);
+    expect(db.photos).toEqual([]);
+  });
+
+  it('keeps the form open and shows the error when the delete fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({ data: null, error: { message: 'denied' } });
+    const { onClose } = renderEditForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete album' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The album could not be deleted. Try again.');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Edit album' })).toBeInTheDocument();
+    expect(db.albums).toHaveLength(1);
   });
 });

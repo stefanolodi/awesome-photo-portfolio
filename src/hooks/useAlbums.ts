@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { mapAlbum, mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
+import { deleteCloudinaryAssets } from '../lib/cloudinary';
 import { ALL_PHOTOS_KEY } from './useAllPhotos';
 import type { Album } from '../types';
 
@@ -111,10 +112,16 @@ export function useUpdateAlbum() {
 export function useDeleteAlbum() {
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('albums').delete().eq('id', id);
+      const { data: publicIds, error } = await supabase.rpc('delete_album', { album_id: id });
       if (error) throw error;
+      // The rows are gone, so a failed file cleanup only leaves orphans that cost storage.
+      if (publicIds.length > 0) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) deleteCloudinaryAssets(publicIds, session.access_token).catch(() => {});
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      queryClient.removeQueries({ queryKey: albumKey(id) });
       void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
       void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },

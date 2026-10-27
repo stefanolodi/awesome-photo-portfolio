@@ -152,6 +152,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_album: { Args: { album_id: string }; Returns: string[] }
       is_owner: { Args: never; Returns: boolean }
       reorder_albums: { Args: { updates: Json }; Returns: undefined }
       reorder_photos: { Args: { updates: Json }; Returns: undefined }

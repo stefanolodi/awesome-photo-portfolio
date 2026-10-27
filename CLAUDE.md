@@ -23,7 +23,7 @@ A private, personal photo portfolio app. The owner browses and curates their pho
 
 ## Architecture
 
-The browser reads and writes the `albums` and `photos` tables in Supabase directly, with the public anon key. Supabase row-level security hides private albums from guests and lets only the owner write. The client filter only shapes the UI. Photo files live in Cloudinary. The browser uploads a photo straight to Cloudinary with a signature from `api/sign-cloudinary-upload`, and `api/delete-cloudinary-asset` deletes one. Both functions hold the Cloudinary secret and check the owner's user id in `api/_lib/authorizeOwner.ts`.
+The browser reads and writes the `albums` and `photos` tables in Supabase directly, with the public anon key. Supabase row-level security hides private albums from guests and lets only the owner write. The client filter only shapes the UI. Photo files live in Cloudinary. The browser uploads a photo straight to Cloudinary with a signature from `api/sign-cloudinary-upload`, and `api/delete-cloudinary-asset` deletes a list of them. Both functions hold the Cloudinary secret and check the owner's user id in `api/_lib/authorizeOwner.ts`.
 
 The reasons for these choices are in `docs/adr/README.md`.
 
@@ -61,7 +61,7 @@ supabase/
 
 The owner is the Supabase user whose id matches `VITE_OWNER_USER_ID` in the client and `OWNER_USER_ID` in the functions. Everyone else is a guest. Components read `isOwner` from `useAuth()`.
 
-The owner sees private albums, creates and edits albums, switches an album between private and public, uploads photos, reorders albums and photos by drag and drop, and writes notes. A guest sees public albums only and reads notes.
+The owner sees private albums, creates, edits and deletes albums, switches an album between private and public, uploads photos, reorders albums and photos by drag and drop, and writes notes. A guest sees public albums only and reads notes.
 
 ### Gate
 

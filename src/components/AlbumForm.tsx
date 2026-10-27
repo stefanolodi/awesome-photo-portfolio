@@ -1,7 +1,9 @@
-import { useState, useRef, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
+import { useEffect, useState, useRef, type ChangeEvent, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useCreateAlbum, useSetFeaturedAlbum, useUpdateAlbum, type AlbumInput } from '../hooks/useAlbums';
-import { getUploadSignature, uploadToCloudinary, deleteCloudinaryAsset } from '../lib/cloudinary';
+import { useCreateAlbum, useDeleteAlbum, useSetFeaturedAlbum, useUpdateAlbum, type AlbumInput } from '../hooks/useAlbums';
+import { getUploadSignature, uploadToCloudinary, deleteCloudinaryAssets } from '../lib/cloudinary';
+import { ActionError } from './ActionError';
 import type { Album } from '../types';
 
 interface Props {
@@ -14,6 +16,8 @@ export function AlbumForm({ album, onClose }: Props) {
   const createAlbum = useCreateAlbum();
   const updateAlbum = useUpdateAlbum();
   const setFeaturedAlbum = useSetFeaturedAlbum();
+  const deleteAlbum = useDeleteAlbum();
+  const navigate = useNavigate();
   const isEdit = !!album;
 
   const [title, setTitle] = useState(album?.title ?? '');
@@ -28,6 +32,13 @@ export function AlbumForm({ album, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const cancelDeleteRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirmingDelete) cancelDeleteRef.current?.focus();
+  }, [confirmingDelete]);
 
   const handleCoverFile = (file: File) => {
     setCoverFile(file);
@@ -60,7 +71,7 @@ export function AlbumForm({ album, onClose }: Props) {
         const sig = await getUploadSignature(session.access_token);
 
         if (isEdit && album?.coverPublicId) {
-          await deleteCloudinaryAsset(album.coverPublicId, session.access_token).catch(() => {});
+          await deleteCloudinaryAssets([album.coverPublicId], session.access_token).catch(() => {});
         }
 
         const result = await uploadToCloudinary(coverFile, sig);
@@ -88,8 +99,29 @@ export function AlbumForm({ album, onClose }: Props) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!album) return;
+    setDeleteError('');
+    try {
+      await deleteAlbum.mutateAsync(album.id);
+      onClose();
+      void navigate('/');
+    } catch (err) {
+      console.error(err);
+      setConfirmingDelete(false);
+      setDeleteError('The album could not be deleted. Try again.');
+    }
+  };
+
+  const cancelDeleteOnEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') setConfirmingDelete(false);
+  };
+
+  const photoCount = album?.photos.length ?? 0;
+
   return (
     <div className="panel-overlay">
+      <ActionError message={deleteError} onDismiss={() => setDeleteError('')} />
       <div className="panel-backdrop" onClick={onClose} />
       <div className="panel-body" role="dialog" aria-modal="true" aria-label={isEdit ? 'Edit album' : 'New album'}>
         <div className="panel-header">
@@ -198,6 +230,28 @@ export function AlbumForm({ album, onClose }: Props) {
               </div>
             </div>
           </div>
+
+          {isEdit && (
+            <div className="field album-delete">
+              {confirmingDelete ? (
+                <div className="album-delete-confirm" role="group" aria-labelledby="album-delete-question" onKeyDown={cancelDeleteOnEscape}>
+                  <p id="album-delete-question">
+                    Delete this album and its {photoCount} {photoCount === 1 ? 'photo' : 'photos'}?
+                  </p>
+                  <div className="album-delete-actions">
+                    <button type="button" className="btn-danger" onClick={() => void handleDelete()} disabled={deleteAlbum.isPending}>
+                      {deleteAlbum.isPending ? <span className="spinner" /> : 'Delete'}
+                    </button>
+                    <button type="button" className="btn-ghost" aria-label="Cancel delete" ref={cancelDeleteRef} onClick={() => setConfirmingDelete(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" className="btn-danger" onClick={() => setConfirmingDelete(true)}>Delete album</button>
+              )}
+            </div>
+          )}
         </form>
 
         <div className="panel-footer">
