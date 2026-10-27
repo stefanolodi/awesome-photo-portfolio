@@ -21,6 +21,8 @@ export function mapAlbum(row: AlbumRow, photos: Photo[] = []): Album {
   return {
     id: row.id,
     isPrivate: row.is_private,
+    // Rows read before the featured_album migration has run have no is_featured.
+    isFeatured: row.is_featured ?? false,
     // year is a generated column with no NOT NULL, so its type allows null even though event_date never is.
     year: row.year ?? Number(row.event_date.slice(0, 4)),
     title: row.title,

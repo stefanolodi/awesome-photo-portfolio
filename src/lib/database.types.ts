@@ -46,6 +46,7 @@ export type Database = {
           display_order: number
           event_date: string
           id: string
+          is_featured: boolean
           is_private: boolean
           title: string
           updated_at: string
@@ -59,6 +60,7 @@ export type Database = {
           display_order?: number
           event_date: string
           id?: string
+          is_featured?: boolean
           is_private?: boolean
           title: string
           updated_at?: string
@@ -72,6 +74,7 @@ export type Database = {
           display_order?: number
           event_date?: string
           id?: string
+          is_featured?: boolean
           is_private?: boolean
           title?: string
           updated_at?: string
@@ -152,6 +155,7 @@ export type Database = {
       is_owner: { Args: never; Returns: boolean }
       reorder_albums: { Args: { updates: Json }; Returns: undefined }
       reorder_photos: { Args: { updates: Json }; Returns: undefined }
+      set_featured_album: { Args: { album_id?: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

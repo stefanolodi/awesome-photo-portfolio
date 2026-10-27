@@ -90,7 +90,23 @@ export function fakeSupabase(db: FakeDatabase, failingReads: Set<string> = new S
           rows.push(saved);
           return new FakeQuery([saved]);
         },
+        update: (patch: Row) => ({
+          eq: (column: string, value: unknown) => {
+            const matched = rows.filter((row) => row[column] === value);
+            matched.forEach((row) => Object.assign(row, patch));
+            return new FakeQuery(matched);
+          },
+        }),
       };
+    },
+    // Mirrors the SQL functions in supabase/migrations/.
+    rpc: (name: string, args: Row = {}): PromiseLike<Result> => {
+      if (name !== 'set_featured_album') {
+        return Promise.resolve({ data: null, error: { message: `No function ${name}` } });
+      }
+      const albumId = args.album_id ?? null;
+      for (const row of db.albums ?? []) row.is_featured = albumId !== null && row.id === albumId;
+      return Promise.resolve({ data: null, error: null });
     },
   };
 }

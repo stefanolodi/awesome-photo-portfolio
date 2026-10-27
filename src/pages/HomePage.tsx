@@ -23,6 +23,7 @@ import { HeroCover } from '../components/HeroCover';
 import { PhotoGridImage } from '../components/PhotoGridImage';
 import { photoSizes } from '../lib/photoSizes';
 import { orderAllPhotos } from '../lib/orderAllPhotos';
+import { chooseHeroAlbum } from '../lib/chooseHeroAlbum';
 import type { Album } from '../types';
 
 type HomeView = 'galleries' | 'photos' | number;
@@ -48,7 +49,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
     [accessibleAlbums]
   );
 
-  const featuredAlbum = accessibleAlbums[0];
+  const featuredAlbum = useMemo(() => chooseHeroAlbum(albums, isOwner), [albums, isOwner]);
   const visibleAlbums = useMemo(() => {
     if (typeof activeView === 'number') return accessibleAlbums.filter((a) => a.year === activeView);
     return accessibleAlbums;

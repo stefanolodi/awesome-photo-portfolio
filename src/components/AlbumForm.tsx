@@ -1,6 +1,6 @@
 import { useState, useRef, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useCreateAlbum, useUpdateAlbum, type AlbumInput } from '../hooks/useAlbums';
+import { useCreateAlbum, useSetFeaturedAlbum, useUpdateAlbum, type AlbumInput } from '../hooks/useAlbums';
 import { getUploadSignature, uploadToCloudinary, deleteCloudinaryAsset } from '../lib/cloudinary';
 import type { Album } from '../types';
 
@@ -13,12 +13,15 @@ export function AlbumForm({ album, onClose }: Props) {
   const { session } = useAuth();
   const createAlbum = useCreateAlbum();
   const updateAlbum = useUpdateAlbum();
+  const setFeaturedAlbum = useSetFeaturedAlbum();
   const isEdit = !!album;
 
   const [title, setTitle] = useState(album?.title ?? '');
   const [description, setDescription] = useState(album?.description ?? '');
   const [eventDate, setEventDate] = useState(album?.eventDate ?? '');
   const [isPrivate, setIsPrivate] = useState(album?.isPrivate ?? true);
+  const wasFeatured = album?.isFeatured ?? false;
+  const [isFeatured, setIsFeatured] = useState(wasFeatured);
   const [coverPreview, setCoverPreview] = useState(album?.cover ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isDragover, setIsDragover] = useState(false);
@@ -67,10 +70,12 @@ export function AlbumForm({ album, onClose }: Props) {
 
       const input: AlbumInput = { title, description, eventDate, isPrivate, coverUrl, coverPublicId };
 
-      if (isEdit && album) {
-        await updateAlbum.mutateAsync({ id: album.id, ...input });
-      } else {
-        await createAlbum.mutateAsync(input);
+      const saved = isEdit && album
+        ? await updateAlbum.mutateAsync({ id: album.id, ...input })
+        : await createAlbum.mutateAsync(input);
+
+      if (isFeatured !== wasFeatured) {
+        await setFeaturedAlbum.mutateAsync(isFeatured ? saved.id : null);
       }
 
       onClose();
@@ -164,12 +169,32 @@ export function AlbumForm({ album, onClose }: Props) {
                   type="checkbox"
                   checked={isPrivate}
                   onChange={(e) => setIsPrivate(e.target.checked)}
+                  aria-labelledby="album-private-label"
                 />
                 <span className="toggle-track" />
               </label>
               <div>
-                <p className="privacy-label">Private album</p>
+                <p className="privacy-label" id="album-private-label">Private album</p>
                 <p className="privacy-hint">Only you can see this album when private.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="field">
+            <div className="privacy-field">
+              <label className="toggle-switch" htmlFor="album-featured">
+                <input
+                  id="album-featured"
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  aria-labelledby="album-featured-label"
+                />
+                <span className="toggle-track" />
+              </label>
+              <div>
+                <p className="privacy-label" id="album-featured-label">Featured album</p>
+                <p className="privacy-hint">The featured album opens the home page. Only one album is featured at a time.</p>
               </div>
             </div>
           </div>
