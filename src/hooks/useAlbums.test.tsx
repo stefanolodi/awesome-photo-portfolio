@@ -29,7 +29,7 @@ const photo = (id: string, displayOrder: number, createdAt: string) => ({
 
 describe('useAlbum', () => {
   it('returns photos that share a display order in the order they were created', async () => {
-    db.albums = [{ id: 'album-1', title: 'Beach', display_order: 0 }];
+    db.albums = [{ id: 'album-1', title: 'Beach', event_date: '2026-05-01', year: 2026, display_order: 0 }];
     db.photos = [
       photo('late', 1, '2026-05-01T10:00:03Z'),
       photo('first', 0, '2026-05-01T10:00:09Z'),
