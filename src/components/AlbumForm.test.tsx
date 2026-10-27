@@ -211,3 +211,10 @@ describe('deleting an album', () => {
     expect(db.albums).toHaveLength(1);
   });
 });
+
+describe('scrolling the form', () => {
+  it('opts the form out of the page smooth scroll, so the wheel scrolls the form', () => {
+    const { container } = renderWithProviders(<AlbumForm onClose={() => {}} />, { isOwner: true });
+    expect(container.querySelector('#album-form')).toHaveAttribute('data-lenis-prevent');
+  });
+});

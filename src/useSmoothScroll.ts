@@ -37,3 +37,26 @@ export function useSmoothScroll() {
     };
   }, []);
 }
+
+let openOverlays = 0;
+let pageOverflow = '';
+
+// A stopped Lenis still cancels the wheel, so each overlay's scroll area also needs data-lenis-prevent.
+// The <html> lock covers reduced motion, where Lenis never starts and the browser scrolls the page.
+export function useOverlayScrollLock() {
+  useEffect(() => {
+    openOverlays += 1;
+    if (openOverlays === 1) {
+      window.__lenis?.stop();
+      pageOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+    }
+    return () => {
+      openOverlays -= 1;
+      if (openOverlays === 0) {
+        window.__lenis?.start();
+        document.documentElement.style.overflow = pageOverflow;
+      }
+    };
+  }, []);
+}

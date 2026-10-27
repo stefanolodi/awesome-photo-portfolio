@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCreateAlbum, useDeleteAlbum, useSetFeaturedAlbum, useUpdateAlbum, type AlbumInput } from '../hooks/useAlbums';
 import { getUploadSignature, uploadToCloudinary, deleteCloudinaryAssets } from '../lib/cloudinary';
+import { useOverlayScrollLock } from '../useSmoothScroll';
 import { ActionError } from './ActionError';
 import type { Album } from '../types';
 
@@ -35,6 +36,7 @@ export function AlbumForm({ album, onClose }: Props) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const cancelDeleteRef = useRef<HTMLButtonElement>(null);
+  useOverlayScrollLock();
 
   useEffect(() => {
     if (confirmingDelete) cancelDeleteRef.current?.focus();
@@ -129,7 +131,7 @@ export function AlbumForm({ album, onClose }: Props) {
           <button type="button" className="panel-close" onClick={onClose} aria-label="Close">×</button>
         </div>
 
-        <form className="panel-scroll" onSubmit={(e) => void handleSubmit(e)} id="album-form">
+        <form className="panel-scroll" data-lenis-prevent onSubmit={(e) => void handleSubmit(e)} id="album-form">
           {error && <p className="login-error">{error}</p>}
 
           <div className="field">

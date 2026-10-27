@@ -88,3 +88,10 @@ describe('PhotoUpload', () => {
     expect([orderOf('first'), orderOf('second'), orderOf('third')]).toEqual([5, 6, 7]);
   });
 });
+
+describe('scrolling the photo list', () => {
+  it('opts the list out of the page smooth scroll, so the wheel scrolls the list', () => {
+    const { container } = renderWithProviders(<PhotoUpload albumId="album-1" />, { isOwner: true, auth: { session } });
+    expect(container.querySelector('.upload-modal-scroll')).toHaveAttribute('data-lenis-prevent');
+  });
+});
