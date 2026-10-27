@@ -1240,7 +1240,25 @@ body {
   transition: background-color 200ms ease;
 }
 
-.btn-danger:hover { background: color-mix(in oklch, var(--accent-orange) 10%, transparent); }
+.btn-danger:hover:not(:disabled) { background: color-mix(in oklch, var(--accent-orange) 10%, transparent); }
+.btn-danger:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.album-delete {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  align-items: flex-start;
+}
+
+.album-delete-confirm p {
+  margin: 0 0 0.75rem;
+  color: var(--accent-orange-deep);
+  font-weight: 600;
+}
+
+.album-delete-actions {
+  display: flex;
+  gap: 0.6rem;
+}
 
 /* ─── Photo Upload Modal ──────────────────────────────────────────────────── */
 

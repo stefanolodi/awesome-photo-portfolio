@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
-import { deleteCloudinaryAsset } from '../lib/cloudinary';
+import { deleteCloudinaryAssets } from '../lib/cloudinary';
 import { ALL_PHOTOS_KEY } from './useAllPhotos';
 import type { Album, Photo } from '../types';
 
@@ -83,7 +83,7 @@ export function useDeletePhoto() {
       if (error) throw error;
       if (publicId) {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) deleteCloudinaryAsset(publicId, session.access_token).catch(() => {});
+        if (session) deleteCloudinaryAssets([publicId], session.access_token).catch(() => {});
       }
       return { albumId };
     },

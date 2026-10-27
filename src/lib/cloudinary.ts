@@ -53,14 +53,14 @@ export function uploadToCloudinary(
   });
 }
 
-export async function deleteCloudinaryAsset(publicId: string, authToken: string): Promise<void> {
+export async function deleteCloudinaryAssets(publicIds: string[], authToken: string): Promise<void> {
   const response = await fetch('/api/delete-cloudinary-asset', {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${authToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ publicId }),
+    body: JSON.stringify({ publicIds }),
   });
-  if (!response.ok) throw new Error('Failed to delete asset');
+  if (!response.ok) throw new Error('Failed to delete assets');
 }

@@ -101,12 +101,26 @@ export function fakeSupabase(db: FakeDatabase, failingReads: Set<string> = new S
     },
     // Mirrors the SQL functions in supabase/migrations/.
     rpc: (name: string, args: Row = {}): PromiseLike<Result> => {
-      if (name !== 'set_featured_album') {
-        return Promise.resolve({ data: null, error: { message: `No function ${name}` } });
+      if (name === 'set_featured_album') {
+        const albumId = args.album_id ?? null;
+        for (const row of db.albums ?? []) row.is_featured = albumId !== null && row.id === albumId;
+        return Promise.resolve({ data: null, error: null });
       }
-      const albumId = args.album_id ?? null;
-      for (const row of db.albums ?? []) row.is_featured = albumId !== null && row.id === albumId;
-      return Promise.resolve({ data: null, error: null });
+      if (name === 'delete_album') return Promise.resolve(deleteAlbum(db, args.album_id));
+      return Promise.resolve({ data: null, error: { message: `No function ${name}` } });
+    },
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: { access_token: 'owner-token' } }, error: null }),
     },
   };
+}
+
+function deleteAlbum(db: FakeDatabase, albumId: unknown): Result {
+  const album = (db.albums ?? []).find((row) => row.id === albumId);
+  if (!album) return { data: null, error: { message: `Album ${String(albumId)} was not deleted` } };
+  const photos = (db.photos ?? []).filter((row) => row.album_id === albumId);
+  db.photos = (db.photos ?? []).filter((row) => row.album_id !== albumId);
+  db.albums = (db.albums ?? []).filter((row) => row !== album);
+  const publicIds = [...photos.map((row) => row.public_id), album.cover_public_id].filter((id) => typeof id === 'string' && id !== '');
+  return { data: publicIds, error: null };
 }
