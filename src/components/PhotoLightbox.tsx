@@ -3,6 +3,7 @@ import { photoAspectRatio, type Size } from '../lib/photoAspectRatio';
 import { photoSizes } from '../lib/photoSizes';
 import { photoSrc } from '../lib/photoSrc';
 import { setImageFallback } from '../lib/setImageFallback';
+import { useOverlayScrollLock } from '../useSmoothScroll';
 import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
 import type { Photo } from '../types';
@@ -22,6 +23,7 @@ type NaturalSize = Required<Size> & { photoId: string };
 export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
   // The state stores the photo id with the natural size, so the natural size of the previous photo never sets the ratio of the next one.
   const [naturalSize, setNaturalSize] = useState<NaturalSize | null>(null);
+  useOverlayScrollLock();
   const ratio = photoAspectRatio(photo, naturalSize?.photoId === photo.id ? naturalSize : undefined);
   const mediaStyle = ratio === undefined ? undefined : ({ '--photo-ratio': ratio } as CSSProperties);
 
@@ -47,7 +49,7 @@ export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFo
             <button className="nav-item" type="button" onClick={onNext}>Next</button>
           </div>
         </div>
-        <aside className="lightbox-note-panel">
+        <aside className="lightbox-note-panel" data-lenis-prevent>
           <button className="nav-item close-lightbox" type="button" onClick={onClose}>Close</button>
           <p className="owner-badge">Note</p>
           {canEdit ? (

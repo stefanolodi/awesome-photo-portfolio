@@ -642,6 +642,7 @@ body {
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem;
   border-left: 1px solid var(--line);
   background: color-mix(in oklch, var(--panel) 92%, var(--brand) 8%);
@@ -1033,6 +1034,7 @@ body {
 .panel-scroll {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -1302,6 +1304,7 @@ body {
 .upload-modal-scroll {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.5rem;
 }
 

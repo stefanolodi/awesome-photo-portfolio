@@ -61,3 +61,10 @@ describe('PhotoLightbox', () => {
     expect(Number(photoArea().style.getPropertyValue('--photo-ratio'))).toBeCloseTo(2 / 3);
   });
 });
+
+describe('scrolling the note panel', () => {
+  it('opts the panel out of the page smooth scroll, so the wheel scrolls the panel', () => {
+    const { container } = renderLightbox(portrait);
+    expect(container.querySelector('.lightbox-note-panel')).toHaveAttribute('data-lenis-prevent');
+  });
+});

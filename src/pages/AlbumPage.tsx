@@ -62,10 +62,8 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
       if (event.key === 'ArrowRight') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'next'));
       if (event.key === 'ArrowLeft') setSelectedPhotoId((currentId) => stepPhotoId(photos, currentId, 'prev'));
     };
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [selectedPhotoId, photos]);

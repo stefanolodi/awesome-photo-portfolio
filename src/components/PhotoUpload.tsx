@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
+import { useState, type ChangeEvent, type DragEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getNextPhotoOrder, useCreatePhoto } from '../hooks/usePhotos';
 import { getUploadSignature, uploadToCloudinary } from '../lib/cloudinary';
+import { useOverlayScrollLock } from '../useSmoothScroll';
 
 interface FileEntry {
   id: string;
@@ -25,17 +26,7 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
   const [isDragover, setIsDragover] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      e.stopPropagation();
-    };
-    el.addEventListener('wheel', onWheel);
-    return () => el.removeEventListener('wheel', onWheel);
-  }, []);
+  useOverlayScrollLock();
 
   const addFiles = (incoming: FileList) => {
     const entries: FileEntry[] = Array.from(incoming)
@@ -136,7 +127,7 @@ export function PhotoUpload({ albumId, onDone, onClose }: Props) {
           <button type="button" className="panel-close" onClick={handleClose} aria-label="Close">×</button>
         </div>
 
-        <div className="upload-modal-scroll" ref={scrollRef}>
+        <div className="upload-modal-scroll" data-lenis-prevent>
         <div
           className={`upload-dropzone${isDragover ? ' is-dragover' : ''}`}
           onDragOver={(e) => { e.preventDefault(); setIsDragover(true); }}
