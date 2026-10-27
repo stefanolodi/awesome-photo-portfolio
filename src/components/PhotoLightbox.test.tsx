@@ -35,6 +35,14 @@ function photoArea() {
 }
 
 describe('PhotoLightbox', () => {
+  it('loads a copy capped at 2400px wide, not the original file', () => {
+    renderLightbox({ ...portrait, src: 'https://res.cloudinary.com/penny/image/upload/v1/penny/photos/tower.jpg' });
+
+    expect(screen.getByRole('img', { name: /Tower/ }).getAttribute('src')).toBe(
+      'https://res.cloudinary.com/penny/image/upload/c_limit,f_auto,q_auto,w_2400/v1/penny/photos/tower.jpg',
+    );
+  });
+
   it("passes a portrait photo's stored ratio to the photo area", () => {
     renderLightbox(portrait);
 
