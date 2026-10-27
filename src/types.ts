@@ -12,6 +12,7 @@ export type Photo = {
 export type Album = {
   id: string;
   isPrivate: boolean;
+  isFeatured: boolean;
   year: number;
   title: string;
   eventDate: string;

@@ -121,6 +121,20 @@ export function useDeleteAlbum() {
   });
 }
 
+// Featuring an album also unfeatures the one that had the flag, so the cache can't be patched one album at a time.
+export function useSetFeaturedAlbum() {
+  return useMutation({
+    mutationFn: async (albumId: string | null) => {
+      const { error } = await supabase.rpc('set_featured_album', { album_id: albumId ?? undefined });
+      if (error) throw error;
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ['album'] });
+    },
+  });
+}
+
 export function useReorderAlbums() {
   return useMutation({
     mutationFn: async (updates: { id: string; display_order: number }[]) => {
