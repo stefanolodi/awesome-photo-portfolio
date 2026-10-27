@@ -12,6 +12,7 @@ import { SortableContext, rectSortingStrategy, arrayMove } from '@dnd-kit/sortab
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '../hooks/useAuth';
 import { useAlbums, useReorderAlbums } from '../hooks/useAlbums';
+import { useAllPhotos } from '../hooks/useAllPhotos';
 import type { ThemeProps } from '../hooks/useTheme';
 import { ActionError } from '../components/ActionError';
 import { AlbumForm } from '../components/AlbumForm';
@@ -21,6 +22,7 @@ import { OwnerSessionButton } from '../components/OwnerSessionButton';
 import { HeroCover } from '../components/HeroCover';
 import { PhotoGridImage } from '../components/PhotoGridImage';
 import { photoSizes } from '../lib/photoSizes';
+import { orderAllPhotos } from '../lib/orderAllPhotos';
 import type { Album } from '../types';
 
 type HomeView = 'galleries' | 'photos' | number;
@@ -52,15 +54,10 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
     return accessibleAlbums;
   }, [activeView, accessibleAlbums]);
 
+  const photosQuery = useAllPhotos(activeView === 'photos');
   const allPhotos = useMemo(
-    () =>
-      accessibleAlbums
-        .flatMap((album) => album.photos.map((photo, index) => ({ photo, album, index })))
-        .sort((a, b) => {
-          if (a.album.eventDate !== b.album.eventDate) return b.album.eventDate.localeCompare(a.album.eventDate);
-          return b.index - a.index;
-        }),
-    [accessibleAlbums]
+    () => orderAllPhotos(accessibleAlbums, photosQuery.data ?? []),
+    [accessibleAlbums, photosQuery.data]
   );
 
   // setViewWithStableScroll turns isFilterAnimating on, and two frames later the content fades in from it.
@@ -188,13 +185,21 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
 
         <div className={isFilterAnimating ? 'filter-content-transition is-entering' : 'filter-content-transition'}>
           {activeView === 'photos' ? (
-            <div className="photo-feed">
-              {allPhotos.map(({ photo, album, index }) => (
-                <article className="photo-feed-item" key={`${album.id}-${photo.id}-${index}`}>
-                  <PhotoGridImage photo={photo} grid={photoSizes.feed} />
-                </article>
-              ))}
-            </div>
+            photosQuery.isPending ? (
+              <div className="photo-feed" />
+            ) : photosQuery.isError ? (
+              <p className="photo-feed-status">The photos could not be loaded. Try again later.</p>
+            ) : allPhotos.length === 0 ? (
+              <p className="photo-feed-status">No photos yet.</p>
+            ) : (
+              <div className="photo-feed">
+                {allPhotos.map(({ photo }) => (
+                  <article className="photo-feed-item" key={photo.id}>
+                    <PhotoGridImage photo={photo} grid={photoSizes.feed} />
+                  </article>
+                ))}
+              </div>
+            )
           ) : activeView === 'galleries' && isOwner ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={visibleAlbums.map((a) => a.id)} strategy={rectSortingStrategy}>

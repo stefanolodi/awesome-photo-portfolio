@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
 import { deleteCloudinaryAsset } from '../lib/cloudinary';
+import { ALL_PHOTOS_KEY } from './useAllPhotos';
 import type { Album, Photo } from '../types';
 
 const albumKey = (id: string) => ['album', id] as const;
@@ -44,6 +45,7 @@ export function useCreatePhoto() {
     },
     onSuccess: (_photo, variables) => {
       void queryClient.invalidateQueries({ queryKey: albumKey(variables.albumId) });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }
@@ -69,6 +71,7 @@ export function useUpdatePhoto() {
       client.setQueryData<Album>(albumKey(albumId), (old) =>
         old ? { ...old, photos: old.photos.map((p) => (p.id === photo.id ? photo : p)) } : old
       );
+      void client.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }
@@ -86,6 +89,7 @@ export function useDeletePhoto() {
     },
     onSuccess: (_data, { albumId }) => {
       void queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }
@@ -118,6 +122,7 @@ export function useReorderPhotos(albumId: string) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: albumKey(albumId) });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }

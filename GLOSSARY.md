@@ -32,6 +32,10 @@ _Avoid_: Picture, image, asset
 The order an album shows its photos in. New photos go at the end in the order the owner added them to the upload, and the owner can drag photos to change it.
 _Avoid_: Sort order, sequence
 
+**All Photos**:
+Every photo from the albums the viewer can see, on the home page. The newest album comes first, and each album keeps its photo order.
+_Avoid_: Feed, stream, timeline
+
 **Cover**:
 The image an album shows on its card and in its opening hero. Cloudinary crops it around its subject to fit each frame.
 _Avoid_: Thumbnail, banner

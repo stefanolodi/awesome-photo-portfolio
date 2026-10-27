@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { mapAlbum, mapPhoto } from '../lib/mappers';
 import { queryClient } from '../lib/queryClient';
+import { ALL_PHOTOS_KEY } from './useAllPhotos';
 import type { Album } from '../types';
 
 const ALBUMS_KEY = ['albums'] as const;
@@ -102,6 +103,7 @@ export function useUpdateAlbum() {
     onSuccess: (album) => {
       void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
       void queryClient.invalidateQueries({ queryKey: albumKey(album.id) });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }
@@ -114,6 +116,7 @@ export function useDeleteAlbum() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }
@@ -143,6 +146,7 @@ export function useReorderAlbums() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ALBUMS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ALL_PHOTOS_KEY });
     },
   });
 }

@@ -21,3 +21,8 @@ export type Album = {
   photos: Photo[];
   displayOrder: number;
 };
+
+export type AlbumPhoto = {
+  albumId: string;
+  photo: Photo;
+};
