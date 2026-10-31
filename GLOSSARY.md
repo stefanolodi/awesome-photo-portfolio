@@ -44,6 +44,10 @@ _Avoid_: Thumbnail, banner
 The owner's text about one photo. Guests can read it, and only the owner writes it.
 _Avoid_: Caption, comment, description
 
+**Lightbox**:
+The full-size view of one photo with its note, where the owner or a guest steps through an album's photos.
+_Avoid_: Photo detail, modal
+
 **Private album**:
 An album only the owner can see. Every new album starts private.
 _Avoid_: Hidden album, draft
