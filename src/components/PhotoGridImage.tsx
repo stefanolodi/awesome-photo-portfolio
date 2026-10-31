@@ -5,8 +5,7 @@ import type { Photo } from '../types';
 
 type PhotoGridImageProps = { photo: Photo; grid: GridSizes };
 
-// width and height let the browser reserve the tile's space before the image loads, so the CSS columns don't rebalance
-// under the smooth scroll as each image arrives.
+// PhotoGrid sizes the tile, so width and height only give the browser the image's ratio before it loads.
 export function PhotoGridImage({ photo, grid }: PhotoGridImageProps) {
   return (
     <img
