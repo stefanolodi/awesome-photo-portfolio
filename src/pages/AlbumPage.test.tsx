@@ -6,11 +6,15 @@ import type { FakeDatabase } from '../test/fakeSupabase';
 import { renderWithProviders } from '../test/renderWithProviders';
 
 const db = vi.hoisted((): FakeDatabase => ({}));
-const writes = vi.hoisted(() => ({ fail: true, updates: [] as Record<string, unknown>[] }));
+const writes = vi.hoisted(() => ({
+  fail: true,
+  updates: [] as Record<string, unknown>[],
+  reorders: [] as { id: string; display_order: number }[][],
+}));
 const drag = vi.hoisted((): { end?: (event: DragEndEvent) => void } => ({}));
 
 // Reads answer from db. Writes fail unless a test sets writes.fail to false, and
-// writes.updates records every photo update the page sends.
+// writes.updates and writes.reorders record every photo update and reorder the page sends.
 vi.mock('../lib/supabase', async () => {
   const { fakeSupabase } = await import('../test/fakeSupabase');
   type Result = { data: unknown; error: { message: string } | null };
@@ -42,7 +46,15 @@ vi.mock('../lib/supabase', async () => {
         update: table === 'photos' ? updatePhoto : failed,
         delete: failed,
       }),
-      rpc: failed,
+      rpc: (_name: string, { updates }: { updates: { id: string; display_order: number }[] }) => chain(() => {
+        writes.reorders.push(updates);
+        if (writes.fail) return { data: null, error: { message: 'offline' } };
+        updates.forEach(({ id, display_order }) => {
+          const row = db.photos.find((p) => p.id === id);
+          if (row) row.display_order = display_order;
+        });
+        return { data: null, error: null };
+      }),
     },
   };
 });
@@ -88,6 +100,7 @@ beforeEach(() => {
   db.photos = [photo('photo-1', 'Beach', 0), photo('photo-2', 'Dinner', 1)];
   writes.fail = true;
   writes.updates = [];
+  writes.reorders = [];
 });
 
 async function renderAlbumPage() {
@@ -206,6 +219,14 @@ describe('AlbumPage', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.keyDown(document.body, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('saves a dragged photo at the position of the tile it was dropped on', async () => {
+    writes.fail = false;
+    await renderAlbumPage();
+    act(() => drag.end?.({ active: { id: 'photo-1' }, over: { id: 'photo-2' } } as DragEndEvent));
+
+    await waitFor(() => expect(writes.reorders).toEqual([[{ id: 'photo-2', display_order: 0 }, { id: 'photo-1', display_order: 1 }]]));
   });
 
   it('tells the owner when the new photo order cannot be saved, and lets them dismiss it', async () => {

@@ -20,6 +20,7 @@ import { AlbumCard } from '../components/AlbumCard';
 import { GallerySliderCard } from '../components/GallerySliderCard';
 import { OwnerSessionButton } from '../components/OwnerSessionButton';
 import { HeroCover } from '../components/HeroCover';
+import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoGridImage } from '../components/PhotoGridImage';
 import { photoSizes } from '../lib/photoSizes';
 import { orderAllPhotos } from '../lib/orderAllPhotos';
@@ -27,6 +28,8 @@ import { chooseHeroAlbum } from '../lib/chooseHeroAlbum';
 import type { Album } from '../types';
 
 type HomeView = 'galleries' | 'photos' | number;
+
+const FEED_COLUMNS = 5;
 
 export function HomePage({ theme, onToggleTheme }: ThemeProps) {
   const { isOwner } = useAuth();
@@ -60,6 +63,7 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
     () => orderAllPhotos(accessibleAlbums, photosQuery.data ?? []),
     [accessibleAlbums, photosQuery.data]
   );
+  const feedPhotos = useMemo(() => allPhotos.map(({ photo }) => photo), [allPhotos]);
 
   // setViewWithStableScroll turns isFilterAnimating on, and two frames later the content fades in from it.
   useEffect(() => {
@@ -193,13 +197,16 @@ export function HomePage({ theme, onToggleTheme }: ThemeProps) {
             ) : allPhotos.length === 0 ? (
               <p className="photo-feed-status">No photos yet.</p>
             ) : (
-              <div className="photo-feed">
-                {allPhotos.map(({ photo }) => (
-                  <article className="photo-feed-item" key={photo.id}>
+              <PhotoGrid
+                photos={feedPhotos}
+                desktopColumns={FEED_COLUMNS}
+                className="photo-feed"
+                renderPhoto={(photo) => (
+                  <article className="photo-feed-item">
                     <PhotoGridImage photo={photo} grid={photoSizes.feed} />
                   </article>
-                ))}
-              </div>
+                )}
+              />
             )
           ) : activeView === 'galleries' && isOwner ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

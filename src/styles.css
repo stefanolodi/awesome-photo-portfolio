@@ -175,20 +175,42 @@ body {
   min-width: 0;
 }
 
+/* PhotoGrid sets the column count and each cell's place. cqw makes --column-width a share of the grid's own width,
+   so a resize between breakpoints needs no script. */
+.photo-grid {
+  --column-width: calc((100cqw - (var(--grid-columns) - 1) * var(--grid-gap)) / var(--grid-columns));
+  position: relative;
+  container-type: inline-size;
+}
+
+/* The cells are out of flow, so this gives the grid its height. A container cannot size itself in its own cqw. */
+.photo-grid::before {
+  content: '';
+  display: block;
+  height: var(--grid-height);
+}
+
+.photo-grid-cell {
+  position: absolute;
+  top: var(--cell-top);
+  left: calc(var(--cell-column) * (var(--column-width) + var(--grid-gap)));
+  width: var(--column-width);
+  height: calc(var(--column-width) / var(--cell-ratio));
+}
+
 .photo-feed {
-  columns: 5 220px;
-  column-gap: clamp(0.7rem, 1.4vw, 1rem);
+  --grid-gap: clamp(0.7rem, 1.4vw, 1rem);
 }
 
 .photo-feed-item {
-  break-inside: avoid;
-  margin: 0 0 clamp(0.7rem, 1.4vw, 1rem);
+  height: 100%;
 }
 
 .photo-feed-item img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  object-fit: contain;
   border: 1px solid var(--line);
 }
 
@@ -432,22 +454,33 @@ body {
 .album-content {
   margin-top: 0;
   padding: clamp(1rem, 2vw, 1.8rem) clamp(1rem, 3vw, 2.4rem) 0;
+  /* A tile dragged past the window edge would otherwise widen the page, and dnd-kit would scroll it sideways. */
+  overflow-x: clip;
 }
 
 .masonry-grid {
-  columns: 4 200px;
-  column-gap: 0.8rem;
+  --grid-gap: 0.8rem;
 }
 
 .photo-tile-wrap {
   position: relative;
-  break-inside: avoid;
-  margin: 0 0 0.8rem;
+  height: 100%;
+}
+
+.photo-tile-wrap.is-dragging {
+  z-index: 1;
+  opacity: 0.65;
+}
+
+.photo-tile-wrap.is-drop-target .photo-tile {
+  outline: 3px solid var(--brand);
+  outline-offset: -3px;
 }
 
 .photo-tile {
   display: block;
   width: 100%;
+  height: 100%;
   border: 1px solid transparent;
   padding: 0;
   border-radius: 0;
@@ -470,8 +503,9 @@ body {
 
 .photo-tile img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  object-fit: contain;
 }
 
 .photo-delete-zone {
@@ -754,10 +788,6 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .photo-feed {
-    columns: 3 180px;
-  }
-
   /* The photo sits above the note panel and keeps a fixed share of the card height, so the panel stays reachable. */
   .lightbox-card {
     width: min(var(--lightbox-card-max-width), 100%);
@@ -773,10 +803,6 @@ body {
   .lightbox-note-panel {
     border-left: 0;
     border-top: 1px solid var(--line);
-  }
-
-  .masonry-grid {
-    columns: 3 180px;
   }
 }
 
@@ -796,8 +822,7 @@ body {
   }
 
   .masonry-grid {
-    columns: 2 160px;
-    column-gap: 0.6rem;
+    --grid-gap: 0.6rem;
   }
 
   .year-filter-bar {
@@ -807,10 +832,6 @@ body {
 
   .albums-grid {
     grid-template-columns: 1fr;
-  }
-
-  .photo-feed {
-    columns: 2 150px;
   }
 
   .photo-lightbox {
@@ -824,10 +845,6 @@ body {
 
   .lightbox-note-panel textarea {
     min-height: 160px;
-  }
-
-  .photo-tile-wrap {
-    margin-bottom: 0.6rem;
   }
 }
 

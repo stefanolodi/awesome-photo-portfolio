@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash2 } from 'lucide-react';
+import { cn } from '../lib/cn';
 import { photoSizes } from '../lib/photoSizes';
 import { PhotoGridImage } from './PhotoGridImage';
 import type { Photo } from '../types';
@@ -10,12 +11,12 @@ type PhotoTileProps = { photo: Photo; isActive: boolean; onSelect: () => void; o
 
 export function PhotoTile({ photo, isActive, onSelect, onDelete }: PhotoTileProps) {
   const [confirming, setConfirming] = useState(false);
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
-  const wrapStyle = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.65 : 1 };
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: photo.id });
+  const wrapStyle = { transform: CSS.Transform.toString(transform), transition };
 
   return (
     <div
-      className="photo-tile-wrap"
+      className={cn('photo-tile-wrap', isDragging && 'is-dragging', isOver && !isDragging && 'is-drop-target')}
       ref={setNodeRef}
       style={wrapStyle}
       onMouseLeave={() => setConfirming(false)}

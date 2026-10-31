@@ -3,12 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, arrayMove, type SortingStrategy } from '@dnd-kit/sortable';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '../hooks/useAuth';
 import { useAlbum, useUpdateAlbum } from '../hooks/useAlbums';
@@ -21,12 +20,17 @@ import { PhotoUpload } from '../components/PhotoUpload';
 import { PhotoLightbox } from '../components/PhotoLightbox';
 import { PhotoTile } from '../components/PhotoTile';
 import { HeroCover } from '../components/HeroCover';
+import { PhotoGrid } from '../components/PhotoGrid';
 import { PhotoGridImage } from '../components/PhotoGridImage';
 import { photoSizes } from '../lib/photoSizes';
 import { stepPhotoId } from '../lib/stepPhotoId';
+import { tileUnderPointer } from '../lib/tileUnderPointer';
 import type { Photo } from '../types';
 
 const NOTE_SAVE_ERROR = 'The note could not be saved. Try again.';
+const ALBUM_COLUMNS = 4;
+// A move can change the column of every photo after it, so no tile previews one. The grid places itself again on drop.
+const keepTilesStill: SortingStrategy = () => null;
 
 export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
   const { albumId } = useParams<{ albumId: string }>();
@@ -170,34 +174,38 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
 
       <section className="album-content fade-in-up delay-1">
         {isOwner ? (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handlePhotoDragEnd}>
-            <SortableContext items={photos.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-              <div className="masonry-grid">
-                {photos.map((photo) => (
+          <DndContext sensors={sensors} collisionDetection={tileUnderPointer} onDragEnd={handlePhotoDragEnd}>
+            <SortableContext items={photos.map((p) => p.id)} strategy={keepTilesStill}>
+              <PhotoGrid
+                photos={photos}
+                desktopColumns={ALBUM_COLUMNS}
+                className="masonry-grid"
+                renderPhoto={(photo) => (
                   <PhotoTile
-                    key={photo.id}
                     photo={photo}
                     isActive={selectedPhoto?.id === photo.id}
                     onSelect={() => setSelectedPhotoId(photo.id)}
                     onDelete={() => deleteAlbumPhoto(photo)}
                   />
-                ))}
-              </div>
+                )}
+              />
             </SortableContext>
           </DndContext>
         ) : (
-          <div className="masonry-grid">
-            {photos.map((photo) => (
+          <PhotoGrid
+            photos={photos}
+            desktopColumns={ALBUM_COLUMNS}
+            className="masonry-grid"
+            renderPhoto={(photo) => (
               <button
-                key={photo.id}
                 type="button"
                 className={selectedPhoto?.id === photo.id ? 'photo-tile is-active' : 'photo-tile'}
                 onClick={() => setSelectedPhotoId(photo.id)}
               >
                 <PhotoGridImage photo={photo} grid={photoSizes.masonry} />
               </button>
-            ))}
-          </div>
+            )}
+          />
         )}
 
       </section>
