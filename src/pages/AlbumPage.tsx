@@ -235,6 +235,7 @@ export function AlbumPage({ theme, onToggleTheme }: ThemeProps) {
           onClose={() => setSelectedPhotoId(null)}
           onNext={() => moveSelection('next')}
           onPrev={() => moveSelection('prev')}
+          canStep={photos.length > 1}
           canEdit={isOwner}
           draftFor={draftFor}
           onSave={savePhoto}

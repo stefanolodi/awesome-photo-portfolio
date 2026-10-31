@@ -113,6 +113,12 @@ async function renderAlbumPage() {
   await screen.findByRole('heading', { name: 'Secret party' });
 }
 
+function swipeLightbox(fromX: number, toX: number) {
+  const area = screen.getByRole('dialog').querySelector('.lightbox-media') as Element;
+  fireEvent.touchStart(area, { touches: [{ clientX: fromX, clientY: 200 }] });
+  fireEvent.touchEnd(area, { touches: [], changedTouches: [{ clientX: toX, clientY: 200 }] });
+}
+
 describe('AlbumPage', () => {
   it('tells the owner the album is still private when making it public fails', async () => {
     await renderAlbumPage();
@@ -162,10 +168,47 @@ describe('AlbumPage', () => {
     await renderAlbumPage();
     fireEvent.click(screen.getByRole('button', { name: 'Beach' }));
     fireEvent.change(await screen.findByRole('textbox', { name: 'Note' }), { target: { value: 'New note' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next photo' }));
 
     expect(screen.getByRole('dialog', { name: 'Photo detail Dinner' })).toBeInTheDocument();
     await waitFor(() => expect(writes.updates).toEqual([{ id: 'photo-1', note: 'New note' }]));
+  });
+
+  it('saves a pending edit when the owner swipes to the next photo', async () => {
+    writes.fail = false;
+    await renderAlbumPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Beach' }));
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Note' }), { target: { value: 'New note' } });
+    swipeLightbox(300, 100);
+
+    expect(screen.getByRole('dialog', { name: 'Photo detail Dinner' })).toBeInTheDocument();
+    await waitFor(() => expect(writes.updates).toEqual([{ id: 'photo-1', note: 'New note' }]));
+  });
+
+  it('wraps from the last photo to the first and back, with the buttons and with a swipe', async () => {
+    await renderAlbumPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Dinner' }));
+    await screen.findByRole('dialog', { name: 'Photo detail Dinner' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next photo' }));
+    expect(screen.getByRole('dialog', { name: 'Photo detail Beach' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous photo' }));
+    expect(screen.getByRole('dialog', { name: 'Photo detail Dinner' })).toBeInTheDocument();
+
+    swipeLightbox(300, 100);
+    expect(screen.getByRole('dialog', { name: 'Photo detail Beach' })).toBeInTheDocument();
+    swipeLightbox(100, 300);
+    expect(screen.getByRole('dialog', { name: 'Photo detail Dinner' })).toBeInTheDocument();
+  });
+
+  it('shows no step buttons when the album has one photo', async () => {
+    db.photos = [photo('photo-1', 'Beach', 0)];
+    await renderAlbumPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Beach' }));
+    await screen.findByRole('dialog', { name: 'Photo detail Beach' });
+
+    expect(screen.queryByRole('button', { name: 'Next photo' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous photo' })).not.toBeInTheDocument();
   });
 
   it('keeps the text and tells the owner when a note cannot be saved', async () => {
