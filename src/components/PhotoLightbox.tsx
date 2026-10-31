@@ -1,9 +1,11 @@
 import { useState, type CSSProperties } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { photoAspectRatio, type Size } from '../lib/photoAspectRatio';
 import { photoSizes } from '../lib/photoSizes';
 import { photoSrc } from '../lib/photoSrc';
 import { setImageFallback } from '../lib/setImageFallback';
 import { useOverlayScrollLock } from '../useSmoothScroll';
+import { useSwipeStep } from '../hooks/useSwipeStep';
 import type { PhotoDraft, SavePhotoDraft } from '../hooks/usePhotoAutosave';
 import { PhotoDetailsEditor } from './PhotoDetailsEditor';
 import type { Photo } from '../types';
@@ -13,6 +15,7 @@ type PhotoLightboxProps = {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  canStep: boolean;
   canEdit: boolean;
   draftFor: (photo: Photo) => PhotoDraft;
   onSave: (photoId: string, ...args: Parameters<SavePhotoDraft>) => ReturnType<SavePhotoDraft>;
@@ -20,10 +23,11 @@ type PhotoLightboxProps = {
 
 type NaturalSize = Required<Size> & { photoId: string };
 
-export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFor, onSave }: PhotoLightboxProps) {
+export function PhotoLightbox({ photo, onClose, onNext, onPrev, canStep, canEdit, draftFor, onSave }: PhotoLightboxProps) {
   // The state stores the photo id with the natural size, so the natural size of the previous photo never sets the ratio of the next one.
   const [naturalSize, setNaturalSize] = useState<NaturalSize | null>(null);
   useOverlayScrollLock();
+  const swipeHandlers = useSwipeStep(onNext, onPrev);
   const ratio = photoAspectRatio(photo, naturalSize?.photoId === photo.id ? naturalSize : undefined);
   const mediaStyle = ratio === undefined ? undefined : ({ '--photo-ratio': ratio } as CSSProperties);
 
@@ -31,7 +35,7 @@ export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFo
     <section className="photo-lightbox" role="dialog" aria-modal="true" aria-label={`Photo detail ${photo.title}`}>
       <div className="lightbox-backdrop" onClick={onClose} />
       <div className="lightbox-card">
-        <div className="lightbox-media" style={mediaStyle}>
+        <div className="lightbox-media" style={mediaStyle} {...(canStep ? swipeHandlers : undefined)}>
           <img
             alt={photo.title}
             src={photoSrc(photo.src, photoSizes.lightbox)}
@@ -44,10 +48,16 @@ export function PhotoLightbox({ photo, onClose, onNext, onPrev, canEdit, draftFo
             }
             onError={(e) => setImageFallback(e, photo.title)}
           />
-          <div className="lightbox-actions">
-            <button className="nav-item" type="button" onClick={onPrev}>Previous</button>
-            <button className="nav-item" type="button" onClick={onNext}>Next</button>
-          </div>
+          {canStep && (
+            <>
+              <button className="lightbox-step lightbox-step-prev" type="button" aria-label="Previous photo" onClick={onPrev}>
+                <ChevronLeft size={24} aria-hidden="true" />
+              </button>
+              <button className="lightbox-step lightbox-step-next" type="button" aria-label="Next photo" onClick={onNext}>
+                <ChevronRight size={24} aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
         <aside className="lightbox-note-panel" data-lenis-prevent>
           <button className="nav-item close-lightbox" type="button" onClick={onClose}>Close</button>

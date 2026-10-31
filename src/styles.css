@@ -654,6 +654,8 @@ body {
     calc(min(var(--lightbox-card-max-width), 100vw - 2 * var(--lightbox-pad)) - var(--lightbox-panel-width) - 2px)
   );
   background: oklch(0.11 0.01 60);
+  /* Keeps a sideways swipe with the page's touch handlers, and leaves pinch zoom to the browser. */
+  touch-action: pan-y pinch-zoom;
 }
 
 .lightbox-media img {
@@ -663,12 +665,43 @@ body {
   object-fit: contain;
 }
 
-.lightbox-actions {
+/* Fixed colours, not theme variables, because the buttons sit on the photo and the photo ignores the theme. */
+.lightbox-step {
+  --step-circle: oklch(0.11 0.01 60 / 0.64);
   position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  display: flex;
-  gap: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid oklch(1 0 0 / 0.32);
+  border-radius: 50%;
+  color: white;
+  background: var(--step-circle);
+  cursor: pointer;
+  transition: background-color 220ms ease;
+}
+
+.lightbox-step-prev {
+  left: 0.75rem;
+}
+
+.lightbox-step-next {
+  right: 0.75rem;
+}
+
+.lightbox-step:hover,
+.lightbox-step:focus-visible {
+  background: oklch(0.11 0.01 60 / 0.86);
+}
+
+/* A white ring between two dark ones, so the focus state shows on a white photo and on a black one. */
+.lightbox-step:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px oklch(0.11 0.01 60);
 }
 
 .lightbox-note-panel {
@@ -841,6 +874,14 @@ body {
   .lightbox-card {
     border-radius: 0;
     height: 100svh;
+  }
+
+  .lightbox-step {
+    top: auto;
+    bottom: 0.75rem;
+    transform: none;
+    width: 44px;
+    height: 44px;
   }
 
   .lightbox-note-panel textarea {
